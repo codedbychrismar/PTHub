@@ -1,12 +1,20 @@
+// router.tsx
 import { createBrowserRouter } from "react-router-dom";
 import MainLayout from "@/layout/MainLayout";
-import Decking from "@/pages/Decking";
+import { DeckingPage } from "@/pages/DeckingPage";
+import { DashboardPage } from "@/pages/DashboardPage";
+import { ActivePage } from "@/pages/ActivePage";
+import { ActionPage } from "@/pages/ActionPage"; // NEW
 
 export const router = createBrowserRouter([
   {
     element: <MainLayout />,
     children: [
-      { index: true, element: <Decking /> },
+      { index: true, element: <DeckingPage /> },   
+      { path: "active", element: <ActivePage /> },
+      { path: "decking", element: <DeckingPage /> },
+      { path: "dashboard", element: <DashboardPage /> },
+      { path: "action", element: <ActionPage /> }, 
     ],
   },
 ]);
