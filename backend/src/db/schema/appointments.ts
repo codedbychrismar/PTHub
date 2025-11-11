@@ -1,5 +1,5 @@
 import { pgTable, uuid, timestamp, text } from "drizzle-orm/pg-core";
-import { InferInsertModel, InferSelectModel } from "drizzle-orm";
+import { InferSelectModel, InferInsertModel } from "drizzle-orm";
 import { coaches } from "./coaches";
 import { members } from "./members";
 
@@ -9,7 +9,7 @@ export const appointments = pgTable("appointments", {
   clientId: uuid("client_id").notNull().references(() => members.id, { onDelete: "cascade" }),
   datetime: timestamp("datetime").notNull(),
   notes: text("notes"),
-  createdBy: uuid("created_by").notNull(), // can store head coach or coach ID
+  createdBy: uuid("created_by").notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
