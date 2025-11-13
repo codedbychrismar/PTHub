@@ -1,5 +1,5 @@
 {
-  "id": "0efdc92b-11b8-419c-862e-3115066769cc",
+  "id": "2585410b-f3b1-4fd9-98b2-1ece00532389",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -245,8 +245,7 @@
         },
         "membership_term": {
           "name": "membership_term",
-          "type": "membership_term",
-          "typeSchema": "public",
+          "type": "text",
           "primaryKey": false,
           "notNull": true
         },
@@ -458,28 +457,8 @@
           "primaryKey": false,
           "notNull": true
         },
-        "total_sessions": {
-          "name": "total_sessions",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true,
-          "default": 0
-        },
-        "used_sessions": {
-          "name": "used_sessions",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true,
-          "default": 0
-        },
-        "notes": {
-          "name": "notes",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "created_at": {
-          "name": "created_at",
+        "assigned_at": {
+          "name": "assigned_at",
           "type": "timestamp",
           "primaryKey": false,
           "notNull": true,
@@ -498,7 +477,7 @@
           "columnsTo": [
             "id"
           ],
-          "onDelete": "cascade",
+          "onDelete": "no action",
           "onUpdate": "no action"
         },
         "member_coaches_coach_id_coaches_id_fk": {
@@ -511,7 +490,7 @@
           "columnsTo": [
             "id"
           ],
-          "onDelete": "cascade",
+          "onDelete": "no action",
           "onUpdate": "no action"
         }
       },
@@ -521,8 +500,8 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public.session_logs": {
-      "name": "session_logs",
+    "public.sessions": {
+      "name": "sessions",
       "schema": "",
       "columns": {
         "id": {
@@ -540,10 +519,16 @@
         },
         "coach_id": {
           "name": "coach_id",
-          "type": "text",
+          "type": "uuid",
           "primaryKey": false,
-          "notNull": true,
-          "default": "''"
+          "notNull": true
+        },
+        "type": {
+          "name": "type",
+          "type": "session_type",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true
         },
         "session_date": {
           "name": "session_date",
@@ -552,8 +537,14 @@
           "notNull": true,
           "default": "now()"
         },
-        "signature": {
-          "name": "signature",
+        "assessment": {
+          "name": "assessment",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "signature_url": {
+          "name": "signature_url",
           "type": "text",
           "primaryKey": false,
           "notNull": true
@@ -563,13 +554,20 @@
           "type": "text",
           "primaryKey": false,
           "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
         }
       },
       "indexes": {},
       "foreignKeys": {
-        "session_logs_member_id_members_id_fk": {
-          "name": "session_logs_member_id_members_id_fk",
-          "tableFrom": "session_logs",
+        "sessions_member_id_members_id_fk": {
+          "name": "sessions_member_id_members_id_fk",
+          "tableFrom": "sessions",
           "tableTo": "members",
           "columnsFrom": [
             "member_id"
@@ -577,7 +575,20 @@
           "columnsTo": [
             "id"
           ],
-          "onDelete": "cascade",
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "sessions_coach_id_coaches_id_fk": {
+          "name": "sessions_coach_id_coaches_id_fk",
+          "tableFrom": "sessions",
+          "tableTo": "coaches",
+          "columnsFrom": [
+            "coach_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
           "onUpdate": "no action"
         }
       },
@@ -595,7 +606,7 @@
       "values": [
         "decking",
         "active",
-        "expired"
+        "not_interested"
       ]
     },
     "public.member_type": {
@@ -606,13 +617,12 @@
         "renewal"
       ]
     },
-    "public.membership_term": {
-      "name": "membership_term",
+    "public.session_type": {
+      "name": "session_type",
       "schema": "public",
       "values": [
-        "6_months",
-        "12_months",
-        "18_months"
+        "trial",
+        "personal"
       ]
     }
   },

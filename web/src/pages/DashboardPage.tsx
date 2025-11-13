@@ -23,28 +23,28 @@ export function DashboardPage() {
 
   const statCards = [
     {
-      title: "Total Members",
+      title: "Total PT Clients",
       value: stats.totalMembers,
       icon: Users,
       color: "text-blue-600",
       bgColor: "bg-blue-50",
     },
     {
-      title: "Active Members",
+      title: "Active PT Clients",
       value: stats.activeMembers,
       icon: UserCheck,
       color: "text-green-600",
       bgColor: "bg-green-50",
     },
     {
-      title: "Decking Members",
+      title: "Decking PT Clients",
       value: stats.deckingMembers,
       icon: Activity,
       color: "text-orange-600",
       bgColor: "bg-orange-50",
     },
     {
-      title: "Expired Members",
+      title: "Expired PT Clients",
       value: stats.expiredMembers,
       icon: UserX,
       color: "text-red-600",

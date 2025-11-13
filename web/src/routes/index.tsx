@@ -5,6 +5,7 @@ import { DeckingPage } from "@/pages/DeckingPage";
 import { DashboardPage } from "@/pages/DashboardPage";
 import { ActivePage } from "@/pages/ActivePage";
 import { ActionPage } from "@/pages/ActionPage"; // NEW
+import MembershipForm from "@/pages/MembershipForm";
 
 export const router = createBrowserRouter([
   {
@@ -14,7 +15,9 @@ export const router = createBrowserRouter([
       { path: "active", element: <ActivePage /> },
       { path: "decking", element: <DeckingPage /> },
       { path: "dashboard", element: <DashboardPage /> },
-      { path: "action", element: <ActionPage /> }, 
+      { path: "action", element: <ActionPage /> },
+      { path: "membership-form", element: <MembershipForm /> }, 
+ 
     ],
   },
 ]);

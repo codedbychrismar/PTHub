@@ -1,7 +1,6 @@
 import express from "express";
 import membersRoutes from "./routes/membersRoutes";
 import coachesRoutes from "./routes/coachesRoutes";
-import activeSessionsRoutes from "./routes/activeSessionsRoutes";
 import dotenv from "dotenv";
 import cors from "cors";
 
@@ -21,6 +20,5 @@ app.use(express.json());
 
 app.use("/api/members", membersRoutes);
 app.use("/api/coaches", coachesRoutes);
-app.use("/api/active-sessions", activeSessionsRoutes);
 
 export default app;

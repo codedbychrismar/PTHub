@@ -1,6 +1,6 @@
-CREATE TYPE "public"."member_status" AS ENUM('decking', 'active', 'expired');--> statement-breakpoint
+CREATE TYPE "public"."member_status" AS ENUM('decking', 'active', 'not_interested');--> statement-breakpoint
 CREATE TYPE "public"."member_type" AS ENUM('new', 'renewal');--> statement-breakpoint
-CREATE TYPE "public"."membership_term" AS ENUM('6_months', '12_months', '18_months');--> statement-breakpoint
+CREATE TYPE "public"."session_type" AS ENUM('trial', 'personal');--> statement-breakpoint
 CREATE TABLE "appointments" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"coach_id" uuid NOT NULL,
@@ -37,7 +37,7 @@ CREATE TABLE "members" (
 	"emergency_name" text,
 	"emergency_relationship" text,
 	"emergency_number" text,
-	"membership_term" "membership_term" NOT NULL,
+	"membership_term" text NOT NULL,
 	"start_date" date,
 	"end_date" date,
 	"keyfob_fee" numeric,
@@ -71,23 +71,24 @@ CREATE TABLE "member_coaches" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"member_id" uuid NOT NULL,
 	"coach_id" uuid NOT NULL,
-	"total_sessions" integer DEFAULT 0 NOT NULL,
-	"used_sessions" integer DEFAULT 0 NOT NULL,
+	"assigned_at" timestamp DEFAULT now() NOT NULL
+);
+--> statement-breakpoint
+CREATE TABLE "sessions" (
+	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"member_id" uuid NOT NULL,
+	"coach_id" uuid NOT NULL,
+	"type" "session_type" NOT NULL,
+	"session_date" timestamp DEFAULT now() NOT NULL,
+	"assessment" text NOT NULL,
+	"signature_url" text NOT NULL,
 	"notes" text,
 	"created_at" timestamp DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
-CREATE TABLE "session_logs" (
-	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
-	"member_id" uuid NOT NULL,
-	"coach_id" text DEFAULT '' NOT NULL,
-	"session_date" timestamp DEFAULT now() NOT NULL,
-	"signature" text NOT NULL,
-	"notes" text
-);
---> statement-breakpoint
 ALTER TABLE "appointments" ADD CONSTRAINT "appointments_coach_id_coaches_id_fk" FOREIGN KEY ("coach_id") REFERENCES "public"."coaches"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "appointments" ADD CONSTRAINT "appointments_client_id_members_id_fk" FOREIGN KEY ("client_id") REFERENCES "public"."members"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "member_coaches" ADD CONSTRAINT "member_coaches_member_id_members_id_fk" FOREIGN KEY ("member_id") REFERENCES "public"."members"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "member_coaches" ADD CONSTRAINT "member_coaches_coach_id_coaches_id_fk" FOREIGN KEY ("coach_id") REFERENCES "public"."coaches"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "session_logs" ADD CONSTRAINT "session_logs_member_id_members_id_fk" FOREIGN KEY ("member_id") REFERENCES "public"."members"("id") ON DELETE cascade ON UPDATE no action;
+ALTER TABLE "member_coaches" ADD CONSTRAINT "member_coaches_member_id_members_id_fk" FOREIGN KEY ("member_id") REFERENCES "public"."members"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "member_coaches" ADD CONSTRAINT "member_coaches_coach_id_coaches_id_fk" FOREIGN KEY ("coach_id") REFERENCES "public"."coaches"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "sessions" ADD CONSTRAINT "sessions_member_id_members_id_fk" FOREIGN KEY ("member_id") REFERENCES "public"."members"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "sessions" ADD CONSTRAINT "sessions_coach_id_coaches_id_fk" FOREIGN KEY ("coach_id") REFERENCES "public"."coaches"("id") ON DELETE no action ON UPDATE no action;

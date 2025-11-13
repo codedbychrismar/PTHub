@@ -1,5 +1,3 @@
 export * from "./appointments"
 export * from "./coaches"
 export * from "./members"
-export * from "./member_coaches"
-export * from "./session_logs"

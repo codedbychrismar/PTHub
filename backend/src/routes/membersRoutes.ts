@@ -3,20 +3,25 @@ import { membersController } from "../controller/membersController";
 
 const router = express.Router();
 
-// Standard CRUD
+// CRUD
 router.post("/", membersController.createMember);
 router.get("/", membersController.getAllMembers);
-router.get("/coach/:coachId", membersController.getMembersByCoachId);
 router.get("/:id", membersController.getMemberById);
 router.put("/:id", membersController.updateMember);
 router.delete("/:id", membersController.deleteMember);
 
-// Free trial
-router.post("/:id/free-trial-session", membersController.logFreeTrialSession);
-router.get("/:id/free-trial-sessions", membersController.getFreeTrialSessions);
+// Member-Coach
+router.post("/:id/assign-coach", membersController.assignCoach);
+router.get("/:id/assigned-coaches", membersController.getAssignedCoaches);
+router.get("/coach/:coachId", membersController.getMembersByCoach);
 
-// Assign coach
-router.post("/assign-coach", membersController.assignCoach);
-router.get("/:memberId/coaches", membersController.getCoachesByMember);
+// Sessions
+router.post("/:id/sessions", membersController.logSession);
+router.get("/:id/sessions", membersController.getSessionsByMember);
+
+// Member Status
+router.get("/status/decking", membersController.getDeckingMembers);
+router.get("/status/active", membersController.getActiveMembers);
+router.post("/:id/activate", membersController.activateMember);
 
 export default router;
