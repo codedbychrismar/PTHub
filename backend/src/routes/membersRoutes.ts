@@ -10,18 +10,18 @@ router.get("/:id", membersController.getMemberById);
 router.put("/:id", membersController.updateMember);
 router.delete("/:id", membersController.deleteMember);
 
-// Member-Coach
+// Coach
 router.post("/:id/assign-coach", membersController.assignCoach);
-router.get("/:id/assigned-coaches", membersController.getAssignedCoaches);
-router.get("/coach/:coachId", membersController.getMembersByCoach);
 
-// Sessions
-router.post("/:id/sessions", membersController.logSession);
-router.get("/:id/sessions", membersController.getSessionsByMember);
-
-// Member Status
-router.get("/status/decking", membersController.getDeckingMembers);
-router.get("/status/active", membersController.getActiveMembers);
+// Activation
 router.post("/:id/activate", membersController.activateMember);
+
+// Session containers
+router.get("/:id/decking-sessions", membersController.getDeckingSessions);
+router.get("/:id/paid-sessions", membersController.getPaidSessions);
+
+// Status filters
+router.get("/status/decking/all", membersController.getDeckingMembers);
+router.get("/status/active/all", membersController.getActiveMembers);
 
 export default router;

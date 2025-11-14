@@ -59,7 +59,7 @@ export function DeckingPage() {
 
   // Fetch decking members
   useEffect(() => {
-    fetch(`${VITE_BACKEND_URL}/api/members/status/decking`)
+    fetch(`${VITE_BACKEND_URL}/api/members/status/decking/all`)
       .then((res) => res.json())
       .then((data) => {
         const uniqueMembers = Array.from(new Map(data.map((d: any) => [d.id, d])).values());

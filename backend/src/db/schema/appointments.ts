@@ -5,10 +5,16 @@ import { members } from "./members";
 
 export const appointments = pgTable("appointments", {
   id: uuid("id").primaryKey().defaultRandom(),
-  coachId: uuid("coach_id").notNull().references(() => coaches.id, { onDelete: "cascade" }),
-  clientId: uuid("client_id").notNull().references(() => members.id, { onDelete: "cascade" }),
+
+  coachId: uuid("coach_id").notNull().references(() => coaches.id),
+  clientId: uuid("client_id").notNull().references(() => members.id),
+
+  deckingSessionId: uuid("decking_session_id"),
+  paidSessionId: uuid("paid_session_id"),
+
   datetime: timestamp("datetime").notNull(),
   notes: text("notes"),
+
   createdBy: uuid("created_by").notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
