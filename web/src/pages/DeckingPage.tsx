@@ -25,42 +25,35 @@ export function DeckingPage() {
       try {
         const res = await axios.get(`${BACKEND_URL}/api/members/status/decking/details`);
 
-        const mapped: DeckingMember[] = (res.data || []).map((m: any) => {
-          const assignedCoaches = m.assignedCoaches ?? [];
-          const deckingSessions = m.deckingSessions ?? [];
-          const hasCoach = assignedCoaches.length > 0;
+          const mapped: DeckingMember[] = (res.data || []).map((m: any) => {
+            const assignedCoaches = m.assignedCoaches ?? [];
 
-          return {
-            id: m.id,
-            brandAmbassador: m.brandAmbassador ?? null,
-            memberType: m.memberType ?? "",
-            firstName: m.firstName ?? "",
-            lastName: m.lastName ?? "",
-            fullName: m.fullName ?? `${m.firstName ?? ""} ${m.lastName ?? ""}`.trim(),
-            email: m.email ?? "",
-            phone: m.phone ?? "",
-            birthday: m.birthday ?? "",
-            address: m.address ?? "",
-            membershipTerm: m.membershipTerm ?? "",
-            startDate: m.startDate ?? null,
-            endDate: m.endDate ?? null,
-            keyfobFee: m.keyfobFee ?? null,
-            joiningFee: m.joiningFee ?? null,
-            recurringFee: m.recurringFee ?? null,
-            status: m.status ?? "",
-            packageType: m.packageType ?? "",
-            purchaseDate: m.purchaseDate ?? null,
-            expirationDate: m.expirationDate ?? null,
-            pricePaid: m.pricePaid ?? null,
-            notes: m.notes ?? null,
-            createdAt: m.createdAt ?? "",
-            deckingSessions,
-            assignedCoaches,
-            category: hasCoach ? "coaches" : "queue",
-            assignedCoachId: hasCoach ? assignedCoaches[0].coachId : undefined,
-            activating: false,
-          };
-        });
+            return {
+              id: m.id,
+              brandAmbassador: m.brandAmbassador ?? null,
+              memberType: m.memberType ?? "",
+              firstName: m.firstName ?? "",
+              lastName: m.lastName ?? "",
+              fullName: m.fullName ?? `${m.firstName ?? ""} ${m.lastName ?? ""}`.trim(),
+              email: m.email ?? "",
+              phone: m.phone ?? "",
+              birthday: m.birthday ?? "",
+              address: m.address ?? "",
+              membershipTerm: m.membershipTerm ?? "",
+              startDate: m.startDate ?? null,
+              endDate: m.endDate ?? null,
+              keyfob: m.keyfob ?? "",
+              status: m.status ?? "",
+              createdAt: m.createdAt ?? "",
+
+              deckingSessions: m.deckingSessions ?? [],
+              assignedCoaches,
+              assignedCoachId: assignedCoaches[0]?.coachId ?? null,
+              category: m.category ?? "queue",
+            };
+          });
+
+
 
         setMembersState(mapped);
       } catch (err) {

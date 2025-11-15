@@ -7,9 +7,9 @@ export type AssessmentKey = "assessment1" | "assessment2" | "assessment3";
 export interface DeckingSession {
   id: string;
   memberId: string;
-  coachId: string;
-  label: string; // e.g. "Assessment 1", "Free PT Assessment 1"
-  status: string; // e.g. "not_scheduled", "scheduled", "completed"
+  coachId: string | null;
+  label: string;
+  status: string;
   appointmentId: string | null;
   scheduledDate: string | null;
   createdAt: string;
@@ -32,48 +32,23 @@ export interface DeckingMember {
   phone: string;
   birthday: string;
   address: string;
-  city: string;
-  state: string;
-  country: string;
-  postalCode: string;
-
-  emergencyName: string | null;
-  emergencyRelationship: string | null;
-  emergencyNumber: string | null;
-
   membershipTerm: string;
   startDate: string | null;
   endDate: string | null;
-
-  keyfobFee: number | null;
-  joiningFee: number | null;
-  recurringFee: number | null;
-
-  parqHeartCondition: boolean;
-  parqChestPainDuringExercise: boolean;
-  parqChestPainRecent: boolean;
-  parqDizziness: boolean;
-  parqJointProblem: boolean;
-  parqBloodPressureMedication: boolean;
-  parqOtherReason: boolean;
-
+  keyfob: string;
   status: string;
-  packageType: string;
-  purchaseDate: string | null;
-  expirationDate: string | null;
-  pricePaid: number | null;
-  notes: string | null;
-
   createdAt: string;
 
+  // New fields you needed
   deckingSessions: DeckingSession[];
   assignedCoaches: AssignedCoach[];
+  assignedCoachId?: string | null;
 
-  // UI-only fields
-  category: DeckingCategory;
-  assignedCoachId?: string;
+  // Optional but used in UI
+  category?: "queue" | "not_interested" | "coaches";
   activating?: boolean;
 }
+
 
 export interface Coach {
   id: string;

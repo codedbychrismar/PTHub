@@ -101,83 +101,34 @@ export function MemberSlideOver({
             {activeTab === "info" && (
               <div className="space-y-4">
                   <section>
-                  <h3 className="text-xs font-semibold text-slate-500 uppercase mb-1">Assigned Coaches</h3>
-                  {member.assignedCoaches.length === 0 ? (
-                    <p className="text-xs text-slate-500">No coach assigned.</p>
-                  ) : (
+                    <h3 className="text-xs font-semibold text-slate-500 uppercase mb-1">Personal Info</h3>
                     <div className="space-y-1 text-xs">
-                      {member.assignedCoaches.map((c) => (
-                        <p key={c.coachId}>• {c.fullName} ({c.email})</p>
-                      ))}
+                      <p><span className="font-medium">Full Name:</span> {member.firstName} {member.lastName}</p>
+                      <p><span className="font-medium">Birthday:</span> {member.birthday || "N/A"}</p>
                     </div>
-                  )}
-                </section>
-                <section>
-                  <h3 className="text-xs font-semibold text-slate-500 uppercase mb-1">Personal Info</h3>
-                  <div className="space-y-1 text-xs">
-                    <p><span className="font-medium">Full Name:</span> {member.fullName}</p>
-                    <p><span className="font-medium">First Name:</span> {member.firstName}</p>
-                    <p><span className="font-medium">Last Name:</span> {member.lastName}</p>
-                    <p><span className="font-medium">Member Type:</span> {member.memberType || "N/A"}</p>
-                    <p><span className="font-medium">Brand Ambassador:</span> {member.brandAmbassador || "N/A"}</p>
-                    <p><span className="font-medium">Birthday:</span> {member.birthday || "N/A"}</p>
-                  </div>
-                </section>
+                  </section>
 
-                <section>
-                  <h3 className="text-xs font-semibold text-slate-500 uppercase mb-1">Contact & Address</h3>
-                  <div className="space-y-1 text-xs">
-                    <p><span className="font-medium">Email:</span> {member.email}</p>
-                    <p><span className="font-medium">Phone:</span> {member.phone}</p>
-                    <p><span className="font-medium">Address:</span> {member.address}, {member.city}, {member.state}, {member.country} {member.postalCode}</p>
-                  </div>
-                </section>
+                  <section>
+                    <h3 className="text-xs font-semibold text-slate-500 uppercase mb-1">Contact & Address</h3>
+                    <div className="space-y-1 text-xs">
+                      <p><span className="font-medium">Email:</span> {member.email}</p>
+                      <p><span className="font-medium">Phone:</span> {member.phone}</p>
+                      <p><span className="font-medium">Address:</span> {member.address || "N/A"}</p>
+                    </div>
+                  </section>
 
-                <section>
-                  <h3 className="text-xs font-semibold text-slate-500 uppercase mb-1">Emergency Contact</h3>
-                  <div className="space-y-1 text-xs">
-                    <p><span className="font-medium">Name:</span> {member.emergencyName || "None"}</p>
-                    <p><span className="font-medium">Relationship:</span> {member.emergencyRelationship || "None"}</p>
-                    <p><span className="font-medium">Contact Number:</span> {member.emergencyNumber || "None"}</p>
-                  </div>
-                </section>
+                  <section>
+                    <h3 className="text-xs font-semibold text-slate-500 uppercase mb-1">Membership</h3>
+                    <div className="space-y-1 text-xs">
+                      <p><span className="font-medium">Membership Term:</span> {member.membershipTerm}</p>
+                      <p><span className="font-medium">Start Date:</span> {member.startDate || "N/A"}</p>
+                      <p><span className="font-medium">End Date:</span> {member.endDate || "N/A"}</p>
+                      <p><span className="font-medium">Keyfob:</span> {member.keyfob || "N/A"}</p>
+                      <p><span className="font-medium">Status:</span> {member.status}</p>
+                      <p><span className="font-medium">Created At:</span> {member.createdAt.toString()}</p>
+                    </div>
+                  </section>
 
-                <section>
-                  <h3 className="text-xs font-semibold text-slate-500 uppercase mb-1">Membership & Purchase</h3>
-                  <div className="space-y-1 text-xs">
-                    <p><span className="font-medium">Membership Term:</span> {member.membershipTerm || "N/A"}</p>
-                    <p><span className="font-medium">Package Type:</span> {member.packageType || "N/A"}</p>
-                    <p><span className="font-medium">Start Date:</span> {member.startDate || "N/A"}</p>
-                    <p><span className="font-medium">End Date:</span> {member.endDate || "N/A"}</p>
-                    <p><span className="font-medium">Purchase Date:</span> {member.purchaseDate || "N/A"}</p>
-                    <p><span className="font-medium">Expiration Date:</span> {member.expirationDate || "N/A"}</p>
-                    <p><span className="font-medium">Price Paid:</span> {member.pricePaid ?? "N/A"}</p>
-                    <p><span className="font-medium">Notes:</span> {member.notes || "N/A"}</p>
-                    <p><span className="font-medium">Status:</span> {member.status}</p>
-                  </div>
-                </section>
-
-                <section>
-                  <h3 className="text-xs font-semibold text-slate-500 uppercase mb-1">Fees</h3>
-                  <div className="space-y-1 text-xs">
-                    <p><span className="font-medium">Keyfob Fee:</span> {member.keyfobFee ?? "N/A"}</p>
-                    <p><span className="font-medium">Joining Fee:</span> {member.joiningFee ?? "N/A"}</p>
-                    <p><span className="font-medium">Recurring Fee:</span> {member.recurringFee ?? "N/A"}</p>
-                  </div>
-                </section>
-
-                <section>
-                  <h3 className="text-xs font-semibold text-slate-500 uppercase mb-1">PAR-Q Responses</h3>
-                  <ul className="list-disc ml-5 space-y-0.5 text-xs">
-                    <li>Heart Condition: {member.parqHeartCondition ? "Yes" : "No"}</li>
-                    <li>Chest Pain During Exercise: {member.parqChestPainDuringExercise ? "Yes" : "No"}</li>
-                    <li>Recent Chest Pain: {member.parqChestPainRecent ? "Yes" : "No"}</li>
-                    <li>Dizziness: {member.parqDizziness ? "Yes" : "No"}</li>
-                    <li>Joint Problems: {member.parqJointProblem ? "Yes" : "No"}</li>
-                    <li>Blood Pressure Medication: {member.parqBloodPressureMedication ? "Yes" : "No"}</li>
-                    <li>Other Reason: {member.parqOtherReason ? "Yes" : "No"}</li>
-                  </ul>
-                </section>
 
 
               </div>
@@ -212,15 +163,7 @@ export function MemberSlideOver({
                             Scheduled: {s.scheduledDate || "Not scheduled"}
                           </p>
 
-                          {/* Buttons for each session */}
-                          <div className="flex gap-2 mt-2">
-                            <Button className="h-6 px-2 text-[11px]">
-                              Make Appointment
-                            </Button>
-                            <Button variant="outline" className="h-6 px-2 text-[11px]">
-                              View Signature
-                            </Button>
-                          </div>
+
                         
                         </div>
 
