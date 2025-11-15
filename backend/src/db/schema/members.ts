@@ -1,4 +1,4 @@
-import { pgTable, uuid, text, timestamp, date } from "drizzle-orm/pg-core";
+import { pgTable, uuid, text, date } from "drizzle-orm/pg-core";
 import { InferSelectModel, InferInsertModel } from "drizzle-orm";
 import { memberStatusEnum } from "../enums/enum";
 
@@ -10,13 +10,13 @@ export const members = pgTable("members", {
   email: text("email").notNull(),
   phone: text("phone").default(""),
   address: text("address").default(""),
-  birthday: text("birthday"), // <-- now text, avoids formatting issues
+  birthday: text("birthday").default(""),        // text to avoid CRM format issues
   membershipTerm: text("membership_term").notNull(),
-  startDate: date("start_date").defaultNow(), // remains date
-  endDate: date("end_date"), // remains date
+  startDate: text("start_date"),                 // text, set manually
+  endDate: text("end_date"),                     // text, set manually
   keyfob: text("keyfob").default(""),
   status: memberStatusEnum("status").default("decking").notNull(),
-  createdAt: timestamp("created_at").defaultNow().notNull(), // remains timestamp
+  createdAt: date("created_at").defaultNow().notNull(), // proper date with default
 });
 
 export type Member = InferSelectModel<typeof members>;

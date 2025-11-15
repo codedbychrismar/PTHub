@@ -13,63 +13,54 @@ export const membersController = {
   //   }
   // },
 
-  createMember: async (req: Request, res: Response) => {
-    try {
-      const { customData } = req.body;
+createMember: async (req: Request, res: Response) => {
+  try {
+    const { customData } = req.body;
 
-      // -------------------------------
-      // RAW DATA FROM CRM
-      // -------------------------------
-      const raw = {
-        contactId:      customData?.contactId ?? customData?.contact_id ?? req.body.contactId ?? req.body.contact_id,
-        firstName:      customData?.firstName ?? req.body.firstName ?? "",
-        lastName:       customData?.lastName ?? req.body.lastName ?? "",
-        email:          customData?.email ?? req.body.email ?? "",
-        phone:          customData?.phone ?? req.body.phone ?? "",
-        birthday:       customData?.birthday ?? req.body.birthday ?? null, // keep as-is
-        address:        customData?.address ?? req.body.address ?? "",
-        membershipTerm: customData?.membershipTerm ?? req.body.membershipTerm ?? "6 Months",
-        startDate:      customData?.startDate ?? req.body.startDate ?? undefined,
-        endDate:        customData?.endDate ?? req.body.endDate ?? null,
-        keyfob:         customData?.keyfob ?? req.body.keyfob ?? "",
-      };
+    const raw = {
+      contactId: customData?.contactId ?? customData?.contact_id ?? req.body.contactId ?? req.body.contact_id,
+      firstName: customData?.firstName ?? req.body.firstName ?? "",
+      lastName: customData?.lastName ?? req.body.lastName ?? "",
+      email: customData?.email ?? req.body.email ?? "",
+      phone: customData?.phone ?? req.body.phone ?? "",
+      birthday: customData?.birthday ?? req.body.birthday ?? "", // text
+      address: customData?.address ?? req.body.address ?? "",
+      membershipTerm: customData?.membershipTerm ?? req.body.membershipTerm ?? "6 Months",
+      startDate: customData?.startDate ?? req.body.startDate ?? "", // text
+      endDate: customData?.endDate ?? req.body.endDate ?? "",         // text
+      keyfob: customData?.keyfob ?? req.body.keyfob ?? "",
+    };
 
-      // -------------------------------
-      // VALIDATION
-      // -------------------------------
-      if (!raw.email || !raw.firstName) {
-        return res.status(400).json({ error: "Missing required fields: email, firstName" });
-      }
-
-      // -------------------------------
-      // FINAL MEMBER DATA (matches DB schema)
-      // -------------------------------
-      const memberData: NewMember = {
-        contactId: raw.contactId,
-        firstName: raw.firstName,
-        lastName: raw.lastName,
-        email: raw.email,
-        phone: raw.phone,
-        birthday: raw.birthday, // store raw string as text
-        address: raw.address,
-        membershipTerm: raw.membershipTerm,
-        ...(raw.startDate ? { startDate: raw.startDate } : {}), // DB default handles if undefined
-        endDate: raw.endDate ?? undefined,
-        keyfob: raw.keyfob,
-      };
-
-      // -------------------------------
-      // CREATE MEMBER IN DB
-      // -------------------------------
-      const member = await membersServices.createMember(memberData);
-
-      return res.status(201).json(member);
-
-    } catch (err: any) {
-      console.error("❌ Error creating member:", err);
-      return res.status(500).json({ error: err.message || "Failed to create member" });
+    if (!raw.email || !raw.firstName) {
+      return res.status(400).json({ error: "Missing required fields: email, firstName" });
     }
-  },
+
+    const memberData: NewMember = {
+      contactId: raw.contactId,
+      firstName: raw.firstName,
+      lastName: raw.lastName,
+      email: raw.email,
+      phone: raw.phone,
+      birthday: raw.birthday,
+      address: raw.address,
+      membershipTerm: raw.membershipTerm,
+      startDate: raw.startDate,
+      endDate: raw.endDate,
+      keyfob: raw.keyfob,
+      status: "decking",
+      // **createdAt will now be handled by DB default**
+    };
+
+    const member = await membersServices.createMember(memberData);
+
+    return res.status(201).json(member);
+
+  } catch (err: any) {
+    console.error("❌ Error creating member:", err);
+    return res.status(500).json({ error: err.message || "Failed to create member" });
+  }
+},
+
 
 
 

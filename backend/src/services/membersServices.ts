@@ -32,13 +32,11 @@ export const membersServices = {
   // 1. CREATE MEMBER + AUTO CREATE 3 DECKING SESSIONS
   // ---------------------------------------------------
   createMember: async (memberData: NewMember) => {
-    const now = new Date();
-
-    // If startDate is not provided, DB defaultNow() will handle it
+    // No need to create 'now', DB default will handle it
     const newMemberData: NewMember = {
       ...memberData,
       status: "decking",
-      createdAt: now,
+      // createdAt: removed
     };
 
     const result = await db.insert(members).values(newMemberData).returning();
@@ -57,6 +55,7 @@ export const membersServices = {
 
     return member;
   },
+
 
 
   // ---------------------------------------------------
