@@ -10,11 +10,15 @@ dotenv.config();
 // Enable CORS before routes
 app.use(
   cors({
-    origin: ["http://localhost:5173"],
+    origin: [
+      "http://localhost:5173",
+      "https://pthub-frontend-omdo8.ondigitalocean.app",      
+    ],
     methods: ["GET", "POST", "PATCH", "DELETE"],
-    credentials: true, // 👈 allow cookies
+    credentials: true,
   })
 );
+
 
 app.use(express.json());
 
