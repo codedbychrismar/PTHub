@@ -48,7 +48,7 @@ createMember: async (req: Request, res: Response) => {
     // -------------------------------
     // VALIDATION
     // -------------------------------
-    if (!raw.email || !raw.memberType || !raw.membershipTerm || !firstName) {
+    if (!raw.email || !firstName) {
       return res.status(400).json({
         error: "Missing required fields: email, memberType, membershipTerm, firstName",
       });
