@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import { membersServices } from "../services/membersServices";
+import { NewMember } from "../db/schema/members";
 
 export const membersController = {
   // Create member
@@ -12,81 +13,71 @@ export const membersController = {
   //   }
   // },
 
-createMember: async (req: Request, res: Response) => {
-  try {
-    const { customData } = req.body;
+  createMember: async (req: Request, res: Response) => {
+    try {
+      const { customData } = req.body;
 
-    // Collect raw incoming fields from EITHER customData or req.body
-    const raw = {
-      contact_id:       customData?.contact_id    ?? req.body.contact_id,
-      name:             customData?.name          ?? req.body.name,
-      firstName:        customData?.firstName     ?? req.body.firstName,
-      lastName:         customData?.lastName      ?? req.body.lastName,
-      phone:            customData?.phone         ?? req.body.phone,
-      email:            customData?.email         ?? req.body.email,
-      memberType:       customData?.memberType    ?? req.body.memberType,
-      membershipTerm:   customData?.membershipTerm ?? req.body.membershipTerm,
-      address:          customData?.address       ?? req.body.address,
-      role:             customData?.role          ?? req.body.role,
-      department:       customData?.department    ?? req.body.department,
-      additional:       customData?.additional    ?? req.body.additional,
-    };
+      // -------------------------------
+      // RAW DATA FROM CRM
+      // -------------------------------
+      const raw = {
+        contactId:      customData?.contactId ?? customData?.contact_id ?? req.body.contactId ?? req.body.contact_id,
+        firstName:      customData?.firstName ?? req.body.firstName ?? "",
+        lastName:       customData?.lastName ?? req.body.lastName ?? "",
+        email:          customData?.email ?? req.body.email ?? "",
+        phone:          customData?.phone ?? req.body.phone ?? "",
+        birthday:       customData?.birthday ?? req.body.birthday ?? null,
+        address:        customData?.address ?? req.body.address ?? "",
+        membershipTerm: customData?.membershipTerm ?? req.body.membershipTerm ?? "6 Months",
+        startDate:      customData?.startDate ?? req.body.startDate ?? undefined,
+        endDate:        customData?.endDate ?? req.body.endDate ?? null,
+        keyfob:         customData?.keyfob ?? req.body.keyfob ?? "",
+      };
 
-    // -------------------------------
-    // NAME HANDLING (supports 2 formats)
-    // -------------------------------
-    let firstName = raw.firstName || "";
-    let lastName = raw.lastName || "";
+      // -------------------------------
+      // VALIDATION
+      // -------------------------------
+      if (!raw.email || !raw.firstName) {
+        return res.status(400).json({ error: "Missing required fields: email, firstName" });
+      }
 
-    // If webhook sends "name", split it
-    if (!firstName && raw.name) {
-      const parts = raw.name.trim().split(" ");
-      firstName = parts.shift() || "";
-      lastName = parts.join(" ") || "";
+      // -------------------------------
+      // NORMALIZE DATES (YYYY-MM-DD)
+      // -------------------------------
+      const normalizeDate = (d?: string | null) => {
+        if (!d || d.trim() === "") return null;
+        return d.split(" ")[0]; // convert "YYYY-MM-DD HH:mm:ss" -> "YYYY-MM-DD"
+      };
+
+      // -------------------------------
+      // FINAL MEMBER DATA (matches DB schema)
+      // -------------------------------
+      const memberData = {
+        contactId: raw.contactId,
+        firstName: raw.firstName,
+        lastName: raw.lastName,
+        email: raw.email,
+        phone: raw.phone,
+        birthday: normalizeDate(raw.birthday),
+        address: raw.address,
+        membershipTerm: raw.membershipTerm,
+        ...(raw.startDate ? { startDate: normalizeDate(raw.startDate) } : {}), // use DB default if not provided
+        endDate: normalizeDate(raw.endDate),
+        keyfob: raw.keyfob,
+      };
+
+      // -------------------------------
+      // CREATE MEMBER IN DB
+      // -------------------------------
+      const member = await membersServices.createMember(memberData);
+
+      return res.status(201).json(member);
+
+    } catch (err: any) {
+      console.error("❌ Error creating member:", err);
+      return res.status(500).json({ error: err.message || "Failed to create member" });
     }
-
-    // -------------------------------
-    // VALIDATION
-    // -------------------------------
-    if (!raw.email || !firstName) {
-      return res.status(400).json({
-        error: "Missing required fields: email, memberType, membershipTerm, firstName",
-      });
-    }
-
-    // -------------------------------
-    // FINAL DATA OBJECT (SENT TO SERVICE)
-    // -------------------------------
-    const memberData = {
-      email: raw.email,
-      phone: raw.phone || null,
-      address: raw.address || null,
-      memberType: raw.memberType as "new" | "renewal",
-      membershipTerm: raw.membershipTerm,
-      firstName,
-      lastName,
-
-      // Optional fields for your DB
-      contact_id: raw.contact_id || null,
-      role: raw.role || null,
-      department: raw.department || null,
-      additional: raw.additional || null,
-    };
-
-    // -------------------------------
-    // CREATE MEMBER IN DATABASE
-    // -------------------------------
-    const member = await membersServices.createMember(memberData);
-
-    return res.status(201).json(member);
-
-  } catch (err: any) {
-    console.error("❌ Error creating member:", err);
-    return res.status(500).json({
-      error: err.message || "Failed to create member",
-    });
-  }
-},
+  },
 
 
 

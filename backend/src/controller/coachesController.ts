@@ -7,6 +7,7 @@ export const coachesController = {
       const newCoach = await coachesServices.createCoach(req.body);
       res.status(201).json(newCoach);
     } catch (error) {
+      console.error("Create Coach Error", error);
       res.status(500).json({ error: "Failed to create coach" });
     }
   },
@@ -47,5 +48,5 @@ export const coachesController = {
     } catch {
       res.status(500).json({ error: "Failed to delete coach" });
     }
-  },
+  }
 };

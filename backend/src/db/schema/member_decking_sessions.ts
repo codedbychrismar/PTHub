@@ -11,7 +11,7 @@ export const memberDeckingSessions = pgTable("member_decking_sessions", {
   memberId: uuid("member_id").notNull().references(() => members.id),
   coachId: uuid("coach_id").references(() => coaches.id),
 
-  label: text("label").notNull(), // Assessment 1, Free PT Assessment 1, Free PT Assessment 2
+  label: text("label").notNull(), // Assessment, Free PT Assessment 1, Free PT Assessment 2
 
   status: sessionStatusEnum("status").notNull().default("not_scheduled"),
 

@@ -7,6 +7,7 @@ import { Badge } from "../components/ui/badge";
 import { Input } from "../components/ui/input";
 import { MemberCard } from "@/components/MemberCard";
 import { MemberSlideOver } from "@/components/MemberSlideOver";
+import { addTagToCoach } from "@/lib/leadConnector";
 
 import type { DeckingMember, Coach } from "../types";
 
@@ -18,6 +19,7 @@ export function DeckingPage() {
   const [selectedMember, setSelectedMember] = useState<DeckingMember | null>(null);
   const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
+  // Fetch members
   useEffect(() => {
     const fetchMembers = async () => {
       try {
@@ -39,26 +41,12 @@ export function DeckingPage() {
             phone: m.phone ?? "",
             birthday: m.birthday ?? "",
             address: m.address ?? "",
-            city: m.city ?? "",
-            state: m.state ?? "",
-            country: m.country ?? "",
-            postalCode: m.postalCode ?? "",
-            emergencyName: m.emergencyName ?? null,
-            emergencyRelationship: m.emergencyRelationship ?? null,
-            emergencyNumber: m.emergencyNumber ?? null,
             membershipTerm: m.membershipTerm ?? "",
             startDate: m.startDate ?? null,
             endDate: m.endDate ?? null,
             keyfobFee: m.keyfobFee ?? null,
             joiningFee: m.joiningFee ?? null,
             recurringFee: m.recurringFee ?? null,
-            parqHeartCondition: m.parqHeartCondition ?? false,
-            parqChestPainDuringExercise: m.parqChestPainDuringExercise ?? false,
-            parqChestPainRecent: m.parqChestPainRecent ?? false,
-            parqDizziness: m.parqDizziness ?? false,
-            parqJointProblem: m.parqJointProblem ?? false,
-            parqBloodPressureMedication: m.parqBloodPressureMedication ?? false,
-            parqOtherReason: m.parqOtherReason ?? false,
             status: m.status ?? "",
             packageType: m.packageType ?? "",
             purchaseDate: m.purchaseDate ?? null,
@@ -75,19 +63,6 @@ export function DeckingPage() {
         });
 
         setMembersState(mapped);
-
-        // Build a unique coaches list
-        const coachesMap = new Map<string, Coach>();
-        mapped.forEach((m) => {
-          m.assignedCoaches.forEach((c) => {
-            coachesMap.set(c.coachId, {
-              id: c.coachId,
-              fullName: c.fullName,
-              email: c.email,
-            });
-          });
-        });
-        setCoachesList(Array.from(coachesMap.values()));
       } catch (err) {
         console.error("Error fetching decking members:", err);
       } finally {
@@ -96,6 +71,20 @@ export function DeckingPage() {
     };
 
     fetchMembers();
+  }, [BACKEND_URL]);
+
+  // Fetch all coaches
+  useEffect(() => {
+    const fetchAllCoaches = async () => {
+      try {
+        const res = await axios.get(`${BACKEND_URL}/api/coaches`);
+        setCoachesList(res.data); // now includes all coaches
+      } catch (err) {
+        console.error("Failed to fetch coaches", err);
+      }
+    };
+
+    fetchAllCoaches();
   }, [BACKEND_URL]);
 
   // Filter members based on search
@@ -113,12 +102,10 @@ export function DeckingPage() {
   const notInterestedMembers = filteredMembers.filter((m) => m.category === "not_interested");
   const coachMembers = filteredMembers.filter((m) => m.category === "coaches");
 
-  // --- NEW: function to call backend and update state ---
+  // Assign or remove coach
   const handleUpdateMemberCoach = async (memberId: string, coachId: string | null) => {
     try {
-      await axios.post(`${BACKEND_URL}/api/members/${memberId}/assign-coach`, {
-        coachId,
-      });
+      await axios.post(`${BACKEND_URL}/api/members/${memberId}/assign-coach`, { coachId });
 
       setMembersState((prev) =>
         prev.map((m) => {
@@ -126,6 +113,13 @@ export function DeckingPage() {
 
           const nextCategory = coachId ? "coaches" : "queue";
           const coach = coachId && coachesList.find((c) => c.id === coachId);
+
+          // Apply CRM tag in GHL
+          if (coach && coach.email) {
+            addTagToCoach(coach.email, "assigned-coach")
+              .then(() => console.log("CRM Tag applied to:", coach.email))
+              .catch(err => console.error("CRM Tag failed:", err));
+          }
 
           return {
             ...m,
@@ -215,7 +209,7 @@ export function DeckingPage() {
           member={selectedMember}
           coachesList={coachesList}
           onClose={() => setSelectedMember(null)}
-          updateMemberCoach={handleUpdateMemberCoach} // <-- use backend-enabled function
+          updateMemberCoach={handleUpdateMemberCoach}
           activateTrial={(id) => {
             setMembersState((prev) =>
               prev.map((m) => (m.id === id ? { ...m, activating: true } : m))

@@ -34,6 +34,7 @@ export const membersServices = {
   createMember: async (memberData: NewMember) => {
     const now = new Date();
 
+    // If startDate is not provided, DB defaultNow() will handle it
     const newMemberData: NewMember = {
       ...memberData,
       status: "decking",
@@ -43,7 +44,9 @@ export const membersServices = {
     const result = await db.insert(members).values(newMemberData).returning();
     const member = result[0];
 
-    // Create 3 onboarding sessions
+    // -------------------------------
+    // CREATE 3 DECKING SESSIONS
+    // -------------------------------
     const deckingRows: NewMemberDeckingSession[] = [
       { memberId: member.id, label: "Assessment 1", status: "not_scheduled" },
       { memberId: member.id, label: "Free PT Assessment 1", status: "not_scheduled" },
@@ -54,6 +57,7 @@ export const membersServices = {
 
     return member;
   },
+
 
   // ---------------------------------------------------
   // 2. ASSIGN COACH
@@ -118,7 +122,6 @@ assignCoach: async (memberId: string, coachId: string) => {
       .update(members)
       .set({
         status: "active",
-        pricePaid: pricePaid !== undefined ? String(pricePaid) : null,
       })
       .where(eq(members.id, memberId))
       .returning();
