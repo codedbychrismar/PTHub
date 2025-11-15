@@ -15,6 +15,7 @@ export const memberSessionPackages = pgTable("member_session_packages", {
 
   startDate: date("start_date").notNull(),
   expirationDate: date("expiration_date"),
+  purchaseDate: date("purchase_date"),    
 
   price: numeric("price"),
   notes: text("notes"),

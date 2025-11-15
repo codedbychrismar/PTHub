@@ -37,7 +37,6 @@ export const membersServices = {
     const newMemberData: NewMember = {
       ...memberData,
       status: "decking",
-      packageType: "none",
       createdAt: now,
     };
 
@@ -119,8 +118,6 @@ assignCoach: async (memberId: string, coachId: string) => {
       .update(members)
       .set({
         status: "active",
-        packageType: packageDuration,
-        purchaseDate: now.toISOString().slice(0, 10),
         pricePaid: pricePaid !== undefined ? String(pricePaid) : null,
       })
       .where(eq(members.id, memberId))

@@ -3,6 +3,7 @@ import membersRoutes from "./routes/membersRoutes";
 import coachesRoutes from "./routes/coachesRoutes";
 import dotenv from "dotenv";
 import cors from "cors";
+import appointmentsRoutes from "./routes/appointmentsRoutes";
 
 const app = express();
 dotenv.config();
@@ -24,5 +25,7 @@ app.use(express.json());
 
 app.use("/api/members", membersRoutes);
 app.use("/api/coaches", coachesRoutes);
+app.use("/api/appointments", appointmentsRoutes);
+
 
 export default app;
