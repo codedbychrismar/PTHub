@@ -26,7 +26,7 @@ export const membersController = {
         lastName:       customData?.lastName ?? req.body.lastName ?? "",
         email:          customData?.email ?? req.body.email ?? "",
         phone:          customData?.phone ?? req.body.phone ?? "",
-        birthday:       customData?.birthday ?? req.body.birthday ?? null,
+        birthday:       customData?.birthday ?? req.body.birthday ?? null, // keep as-is
         address:        customData?.address ?? req.body.address ?? "",
         membershipTerm: customData?.membershipTerm ?? req.body.membershipTerm ?? "6 Months",
         startDate:      customData?.startDate ?? req.body.startDate ?? undefined,
@@ -42,27 +42,19 @@ export const membersController = {
       }
 
       // -------------------------------
-      // NORMALIZE DATES (YYYY-MM-DD)
-      // -------------------------------
-      const normalizeDate = (d?: string | null) => {
-        if (!d || d.trim() === "") return null;
-        return d.split(" ")[0]; // convert "YYYY-MM-DD HH:mm:ss" -> "YYYY-MM-DD"
-      };
-
-      // -------------------------------
       // FINAL MEMBER DATA (matches DB schema)
       // -------------------------------
-      const memberData = {
+      const memberData: NewMember = {
         contactId: raw.contactId,
         firstName: raw.firstName,
         lastName: raw.lastName,
         email: raw.email,
         phone: raw.phone,
-        birthday: normalizeDate(raw.birthday),
+        birthday: raw.birthday, // store raw string as text
         address: raw.address,
         membershipTerm: raw.membershipTerm,
-        ...(raw.startDate ? { startDate: normalizeDate(raw.startDate) } : {}), // use DB default if not provided
-        endDate: normalizeDate(raw.endDate),
+        ...(raw.startDate ? { startDate: raw.startDate } : {}), // DB default handles if undefined
+        endDate: raw.endDate ?? undefined,
         keyfob: raw.keyfob,
       };
 
@@ -78,6 +70,7 @@ export const membersController = {
       return res.status(500).json({ error: err.message || "Failed to create member" });
     }
   },
+
 
 
 
