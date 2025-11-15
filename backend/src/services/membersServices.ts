@@ -46,7 +46,7 @@ export const membersServices = {
     // CREATE 3 DECKING SESSIONS
     // -------------------------------
     const deckingRows: NewMemberDeckingSession[] = [
-      { memberId: member.id, label: "Assessment 1", status: "not_scheduled" },
+      { memberId: member.id, label: "Assessment", status: "not_scheduled" },
       { memberId: member.id, label: "Free PT Assessment 1", status: "not_scheduled" },
       { memberId: member.id, label: "Free PT Assessment 2", status: "not_scheduled" },
     ];
