@@ -1,118 +1,159 @@
-import { useState, useEffect } from "react";
-import { Badge } from "./../components/ui/badge";
-import { Input } from "./../components/ui/input";
+// src/pages/DeckingPage.tsx
+import { useEffect, useState } from "react";
+import axios from "axios";
 import { Search } from "lucide-react";
-import { format } from "date-fns";
+
+import { Badge } from "../components/ui/badge";
+import { Input } from "../components/ui/input";
 import { MemberCard } from "@/components/MemberCard";
-import { X } from "lucide-react";
+import { MemberSlideOver } from "@/components/MemberSlideOver";
 
-interface DeckingMember {
-  id: string;
-  fullName: string;
-  email: string;
-  phoneNumber: string;
-  category: "queue" | "not_interested" | "coaches";
-  assignedCoachId?: string;
-  assessments: {
-    assessment1: boolean;
-    assessment2: boolean;
-    assessment3: boolean;
-  };
-  sessions: {
-    id: string;
-    assessment: "assessment1" | "assessment2" | "assessment3";
-    date: string;
-    signatureUrl: string;
-  }[];
-  activating?: boolean;
-  totalSessions?: number;
-  packageDuration?: string;
-}
-
-interface Coach {
-  id: string;
-  fullName: string;
-  email: string;
-}
+import type { DeckingMember, Coach } from "../types";
 
 export function DeckingPage() {
   const [membersState, setMembersState] = useState<DeckingMember[]>([]);
   const [coachesList, setCoachesList] = useState<Coach[]>([]);
+  const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedMember, setSelectedMember] = useState<DeckingMember | null>(null);
+  const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
-  const VITE_BACKEND_URL = import.meta.env.VITE_BACKEND_URL || "http://localhost:5000";
-
-  const assessmentLabels: Record<string, string> = {
-    assessment1: "Assessment 1",
-    assessment2: "Free PT Session 1",
-    assessment3: "Free PT Session 2",
-  };
-
-  function getSessionStatus(session: { date?: string; signatureUrl?: string } | undefined) {
-    if (!session) return "Not Yet Scheduled";
-    if (session.date && !session.signatureUrl) return "Scheduled";
-    if (session.date && session.signatureUrl === "") return "Not Yet Signed";
-    if (session.signatureUrl) return "Signed";
-    return "Not Yet Scheduled";
-  }
-
-  // Fetch decking members
   useEffect(() => {
-    fetch(`${VITE_BACKEND_URL}/api/members/status/decking/all`)
-      .then((res) => res.json())
-      .then((data) => {
-        const uniqueMembers = Array.from(new Map(data.map((d: any) => [d.id, d])).values());
-        const mapped: DeckingMember[] = uniqueMembers.map((d: any) => {
-          const member: DeckingMember = {
-            id: d.id,
-            fullName: `${d.firstName} ${d.lastName}`,
-            email: d.email,
-            phoneNumber: d.phone,
-            category: d.assignedCoachId ? "coaches" : "queue",
-            assignedCoachId: d.assignedCoachId || undefined,
-            assessments: { assessment1: false, assessment2: false, assessment3: false },
-            sessions:
-              d.sessions?.map((s: any) => ({
-                id: s.id,
-                assessment: s.assessment,
-                date: format(new Date(s.sessionDate), "PPpp"),
-                signatureUrl: s.signature,
-              })) || [],
+    const fetchMembers = async () => {
+      try {
+        const res = await axios.get(`${BACKEND_URL}/api/members/status/decking/details`);
+
+        const mapped: DeckingMember[] = (res.data || []).map((m: any) => {
+          const assignedCoaches = m.assignedCoaches ?? [];
+          const deckingSessions = m.deckingSessions ?? [];
+          const hasCoach = assignedCoaches.length > 0;
+
+          return {
+            id: m.id,
+            brandAmbassador: m.brandAmbassador ?? null,
+            memberType: m.memberType ?? "",
+            firstName: m.firstName ?? "",
+            lastName: m.lastName ?? "",
+            fullName: m.fullName ?? `${m.firstName ?? ""} ${m.lastName ?? ""}`.trim(),
+            email: m.email ?? "",
+            phone: m.phone ?? "",
+            birthday: m.birthday ?? "",
+            address: m.address ?? "",
+            city: m.city ?? "",
+            state: m.state ?? "",
+            country: m.country ?? "",
+            postalCode: m.postalCode ?? "",
+            emergencyName: m.emergencyName ?? null,
+            emergencyRelationship: m.emergencyRelationship ?? null,
+            emergencyNumber: m.emergencyNumber ?? null,
+            membershipTerm: m.membershipTerm ?? "",
+            startDate: m.startDate ?? null,
+            endDate: m.endDate ?? null,
+            keyfobFee: m.keyfobFee ?? null,
+            joiningFee: m.joiningFee ?? null,
+            recurringFee: m.recurringFee ?? null,
+            parqHeartCondition: m.parqHeartCondition ?? false,
+            parqChestPainDuringExercise: m.parqChestPainDuringExercise ?? false,
+            parqChestPainRecent: m.parqChestPainRecent ?? false,
+            parqDizziness: m.parqDizziness ?? false,
+            parqJointProblem: m.parqJointProblem ?? false,
+            parqBloodPressureMedication: m.parqBloodPressureMedication ?? false,
+            parqOtherReason: m.parqOtherReason ?? false,
+            status: m.status ?? "",
+            packageType: m.packageType ?? "",
+            purchaseDate: m.purchaseDate ?? null,
+            expirationDate: m.expirationDate ?? null,
+            pricePaid: m.pricePaid ?? null,
+            notes: m.notes ?? null,
+            createdAt: m.createdAt ?? "",
+            deckingSessions,
+            assignedCoaches,
+            category: hasCoach ? "coaches" : "queue",
+            assignedCoachId: hasCoach ? assignedCoaches[0].coachId : undefined,
+            activating: false,
           };
-
-          member.sessions.forEach((s) => {
-            if (s.assessment === "assessment1") member.assessments.assessment1 = true;
-            if (s.assessment === "assessment2") member.assessments.assessment2 = true;
-            if (s.assessment === "assessment3") member.assessments.assessment3 = true;
-          });
-
-          return member;
         });
 
         setMembersState(mapped);
-      })
-      .catch((err) => console.error("Error fetching decking members:", err));
-  }, []);
 
-  // Fetch coaches
-  useEffect(() => {
-    fetch(`${VITE_BACKEND_URL}/api/coaches`, { headers: { "Content-Type": "application/json" } })
-      .then((res) => res.json())
-      .then((data: Coach[]) => setCoachesList(data))
-      .catch((err) => console.error("Error fetching coaches:", err));
-  }, []);
+        // Build a unique coaches list
+        const coachesMap = new Map<string, Coach>();
+        mapped.forEach((m) => {
+          m.assignedCoaches.forEach((c) => {
+            coachesMap.set(c.coachId, {
+              id: c.coachId,
+              fullName: c.fullName,
+              email: c.email,
+            });
+          });
+        });
+        setCoachesList(Array.from(coachesMap.values()));
+      } catch (err) {
+        console.error("Error fetching decking members:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  const filteredMembers = membersState.filter((m) =>
-    m.fullName.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+    fetchMembers();
+  }, [BACKEND_URL]);
+
+  // Filter members based on search
+  const filteredMembers = membersState.filter((m) => {
+    const q = searchQuery.toLowerCase().trim();
+    if (!q) return true;
+    return (
+      m.fullName.toLowerCase().includes(q) ||
+      m.email.toLowerCase().includes(q) ||
+      m.phone.toLowerCase().includes(q)
+    );
+  });
+
   const queueMembers = filteredMembers.filter((m) => m.category === "queue");
   const notInterestedMembers = filteredMembers.filter((m) => m.category === "not_interested");
   const coachMembers = filteredMembers.filter((m) => m.category === "coaches");
 
+  // --- NEW: function to call backend and update state ---
+  const handleUpdateMemberCoach = async (memberId: string, coachId: string | null) => {
+    try {
+      await axios.post(`${BACKEND_URL}/api/members/${memberId}/assign-coach`, {
+        coachId,
+      });
+
+      setMembersState((prev) =>
+        prev.map((m) => {
+          if (m.id !== memberId) return m;
+
+          const nextCategory = coachId ? "coaches" : "queue";
+          const coach = coachId && coachesList.find((c) => c.id === coachId);
+
+          return {
+            ...m,
+            assignedCoachId: coachId || undefined,
+            category: nextCategory,
+            assignedCoaches:
+              coach && coachId
+                ? [
+                    {
+                      coachId: coach.id,
+                      fullName: coach.fullName,
+                      email: coach.email,
+                    },
+                  ]
+                : [],
+          };
+        })
+      );
+
+      console.log("Coach assigned successfully");
+    } catch (err: any) {
+      console.error("Failed to assign coach:", err);
+      alert(err.response?.data?.error || "Failed to assign coach");
+    }
+  };
+
   return (
     <div className="p-6 space-y-6 flex gap-6">
-      {/* Main Content */}
       <div className="flex-1 space-y-6">
         <div className="flex items-center justify-between">
           <h1 className="text-xl font-semibold">Decking Members</h1>
@@ -121,8 +162,9 @@ export function DeckingPage() {
           </Badge>
         </div>
 
+        {/* Search Bar */}
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground w-4 h-4" />
           <Input
             placeholder="Search members..."
             value={searchQuery}
@@ -131,112 +173,55 @@ export function DeckingPage() {
           />
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
-          {[
-            { title: "Queue", members: queueMembers },
-            { title: "Not Interested", members: notInterestedMembers },
-            { title: "Assigned to Coaches", members: coachMembers },
-          ].map((group) => (
-            <div key={group.title} className="flex flex-col">
-              <div className="bg-purple-700 text-white px-4 py-3 rounded-t-lg flex items-center justify-between">
-                <span>{group.title}</span>
-                <span className="bg-purple-800 px-2 py-1 rounded text-sm">{group.members.length}</span>
-              </div>
-              <div className="bg-white border rounded-b-lg p-4 space-y-4 min-h-[300px] overflow-y-auto">
-                {group.members.length === 0 ? (
-                  <p className="text-muted-foreground text-sm">No members here.</p>
-                ) : (
-                  group.members.map((m) => (
-                    <MemberCard
-                      key={m.id}
-                      member={m}
-                      coachesList={coachesList}
-                      // Update coach assignment
-                      updateMemberCoach={(memberId, coachId) => {
-                        setMembersState((prev) =>
-                          prev.map((mem) =>
-                            mem.id === memberId
-                              ? {
-                                  ...mem,
-                                  assignedCoachId: coachId || undefined, // Keep type DeckingMember
-                                  category: coachId ? "coaches" : "queue", // Update category
-                                }
-                              : mem
-                          )
-                        );
-                      }}
-
-                      // Activate trial
-                      activateTrial={(memberId) => {
-                        setMembersState((prev) =>
-                          prev.map((mem) =>
-                            mem.id === memberId
-                              ? { ...mem, activating: true } // Type still DeckingMember
-                              : mem
-                          )
-                        );
-                      }}
-
-                      onClick={() => setSelectedMember(m)}
-                    />
-                  ))
-                )}
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Right-hand Slide-over Popup */}
-      {selectedMember && (
-        <div className="w-96 border-l bg-white shadow-lg p-4 flex flex-col">
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-lg font-semibold">{selectedMember.fullName}</h2>
-            <button onClick={() => setSelectedMember(null)}>
-              <X className="w-5 h-5 text-gray-500" />
-            </button>
-          </div>
-
-          <div className="space-y-2">
-            <p>
-              <strong>Email:</strong> {selectedMember.email}
-            </p>
-            <p>
-              <strong>Phone:</strong> {selectedMember.phoneNumber}
-            </p>
-            <p>
-              <strong>Assigned Coach:</strong>{" "}
-              {coachesList.find((c) => c.id === selectedMember.assignedCoachId)?.fullName ||
-                "None"}
-            </p>
-          </div>
-
-          <div className="mt-4">
-            <h3 className="font-semibold mb-2">Assessments</h3>
-            {["assessment1", "assessment2", "assessment3"].map((a) => {
-              const session = selectedMember.sessions.find((s) => s.assessment === a);
-              const status = getSessionStatus(session);
-              return (
-                <div key={a} className="flex justify-between text-sm mb-1">
-                  <span>{assessmentLabels[a]}</span>
-                  <span
-                    className={`font-semibold ${
-                      status === "Signed"
-                        ? "text-green-600"
-                        : status === "Scheduled"
-                        ? "text-blue-600"
-                        : status === "Not Yet Signed"
-                        ? "text-orange-600"
-                        : "text-gray-600"
-                    }`}
-                  >
-                    {status}
+        {loading ? (
+          <div className="mt-10 text-sm text-muted-foreground">Loading members…</div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
+            {[
+              { title: "Queue", members: queueMembers },
+              { title: "Not Interested", members: notInterestedMembers },
+              { title: "Assigned to Coaches", members: coachMembers },
+            ].map((group) => (
+              <div key={group.title} className="flex flex-col">
+                <div className="bg-purple-700 text-white px-4 py-3 rounded-t-lg flex justify-between items-center">
+                  <span className="font-medium text-sm">{group.title}</span>
+                  <span className="bg-purple-900 px-2 py-1 rounded text-xs">
+                    {group.members.length}
                   </span>
                 </div>
-              );
-            })}
+                <div className="bg-white border border-slate-200 rounded-b-lg p-3 space-y-3 h-[80vh] overflow-y-auto">
+                  {group.members.length === 0 ? (
+                    <p className="text-muted-foreground text-sm w-100 text-center">No members here yet.</p>
+                  ) : (
+                    group.members.map((m) => (
+                      <MemberCard
+                        key={m.id}
+                        member={m}
+                        coachesList={coachesList}
+                        onSelect={() => setSelectedMember(m)}
+                      />
+                    ))
+                  )}
+                </div>
+              </div>
+            ))}
           </div>
-        </div>
+        )}
+      </div>
+
+      {/* Slide-over */}
+      {selectedMember && (
+        <MemberSlideOver
+          member={selectedMember}
+          coachesList={coachesList}
+          onClose={() => setSelectedMember(null)}
+          updateMemberCoach={handleUpdateMemberCoach} // <-- use backend-enabled function
+          activateTrial={(id) => {
+            setMembersState((prev) =>
+              prev.map((m) => (m.id === id ? { ...m, activating: true } : m))
+            );
+          }}
+        />
       )}
     </div>
   );

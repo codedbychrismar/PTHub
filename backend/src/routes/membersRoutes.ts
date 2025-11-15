@@ -24,4 +24,13 @@ router.get("/:id/paid-sessions", membersController.getPaidSessions);
 router.get("/status/decking/all", membersController.getDeckingMembers);
 router.get("/status/active/all", membersController.getActiveMembers);
 
+// Decking details
+router.get("/:id/decking-details", membersController.getDeckingDetails);
+
+// Package details
+router.get("/:id/package-details", membersController.getPackageDetails);
+
+router.get("/status/decking/details", membersController.getAllDeckingWithDetails);
+router.get("/status/active/details", membersController.getAllActiveWithPackages);
+
 export default router;

@@ -4,11 +4,14 @@ import { Button } from "./ui/button";
 import { LayoutDashboard, UserCheck, Activity, Bolt } from "lucide-react";
 
 export function Navbar() {
-  const navigationButtons = [
-    { to: "/decking", label: "Decking", icon: Activity },
-    { to: "/active", label: "Active", icon: UserCheck },
-    { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  ];
+// Add to your navigationButtons array
+const navigationButtons = [
+  { to: "/decking", label: "Decking", icon: Activity },
+  { to: "/active", label: "Active", icon: UserCheck },
+  { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
+  { to: "/coaches", label: "Coaches", icon: UserCheck }, // New page
+];
+
 
   return (
     <div className="border-b bg-white shadow-sm">

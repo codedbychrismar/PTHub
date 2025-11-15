@@ -16,39 +16,47 @@ createMember: async (req: Request, res: Response) => {
   try {
     const { customData } = req.body;
 
-    // Collect raw incoming fields
+    // Collect raw incoming fields from EITHER customData or req.body
     const raw = {
-      contact_id:   customData?.contact_id || req.body.contact_id,
-      name:         customData?.name || req.body.name,
-      phone:        customData?.phone || req.body.phone,
-      email:        customData?.email || req.body.email,
-      memberType:   customData?.memberType || req.body.memberType,
-      membershipTerm: customData?.membershipTerm || req.body.membershipTerm,
-      address:      customData?.address || req.body.address,
-      role:         customData?.role || req.body.role,
-      department:   customData?.department || req.body.department,
-      additional:   customData?.additional || req.body.additional,
+      contact_id:       customData?.contact_id    ?? req.body.contact_id,
+      name:             customData?.name          ?? req.body.name,
+      firstName:        customData?.firstName     ?? req.body.firstName,
+      lastName:         customData?.lastName      ?? req.body.lastName,
+      phone:            customData?.phone         ?? req.body.phone,
+      email:            customData?.email         ?? req.body.email,
+      memberType:       customData?.memberType    ?? req.body.memberType,
+      membershipTerm:   customData?.membershipTerm ?? req.body.membershipTerm,
+      address:          customData?.address       ?? req.body.address,
+      role:             customData?.role          ?? req.body.role,
+      department:       customData?.department    ?? req.body.department,
+      additional:       customData?.additional    ?? req.body.additional,
     };
 
-    // Convert name → firstName + lastName
-    let firstName = "";
-    let lastName = "";
+    // -------------------------------
+    // NAME HANDLING (supports 2 formats)
+    // -------------------------------
+    let firstName = raw.firstName || "";
+    let lastName = raw.lastName || "";
 
-    if (raw.name) {
+    // If webhook sends "name", split it
+    if (!firstName && raw.name) {
       const parts = raw.name.trim().split(" ");
       firstName = parts.shift() || "";
       lastName = parts.join(" ") || "";
     }
 
-    // Validate required fields for TS + DB
+    // -------------------------------
+    // VALIDATION
+    // -------------------------------
     if (!raw.email || !raw.memberType || !raw.membershipTerm || !firstName) {
       return res.status(400).json({
-        error:
-          "Missing required fields: email, memberType, membershipTerm, firstName",
+        error: "Missing required fields: email, memberType, membershipTerm, firstName",
       });
     }
 
-    // Build the actual DTO expected by your service
+    // -------------------------------
+    // FINAL DATA OBJECT (SENT TO SERVICE)
+    // -------------------------------
     const memberData = {
       email: raw.email,
       phone: raw.phone || null,
@@ -57,21 +65,29 @@ createMember: async (req: Request, res: Response) => {
       membershipTerm: raw.membershipTerm,
       firstName,
       lastName,
-      // OPTIONAL / EXTRA fields your model might accept
-      contact_id: raw.contact_id,
-      role: raw.role,
-      department: raw.department,
-      additional: raw.additional,
+
+      // Optional fields for your DB
+      contact_id: raw.contact_id || null,
+      role: raw.role || null,
+      department: raw.department || null,
+      additional: raw.additional || null,
     };
 
+    // -------------------------------
+    // CREATE MEMBER IN DATABASE
+    // -------------------------------
     const member = await membersServices.createMember(memberData);
 
-    res.status(201).json(member);
+    return res.status(201).json(member);
+
   } catch (err: any) {
     console.error("❌ Error creating member:", err);
-    res.status(500).json({ error: err.message || "Failed to create member" });
+    return res.status(500).json({
+      error: err.message || "Failed to create member",
+    });
   }
 },
+
 
 
 
@@ -183,4 +199,40 @@ createMember: async (req: Request, res: Response) => {
       res.status(500).json({ error: "Failed to fetch active members" });
     }
   },
+
+  getDeckingDetails: async (req: Request, res: Response) => {
+  try {
+    const data = await membersServices.getDeckingDetails(req.params.id);
+    res.status(200).json(data);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message || "Failed to fetch decking details" });
+  }
+},
+
+getPackageDetails: async (req: Request, res: Response) => {
+  try {
+    const data = await membersServices.getPackageDetails(req.params.id);
+    res.status(200).json(data);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message || "Failed to fetch package details" });
+  }
+},
+getAllDeckingWithDetails: async (_req: Request, res: Response) => {
+  try {
+    const data = await membersServices.getAllDeckingWithDetails();
+    res.status(200).json(data);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message || "Failed to fetch decking details" });
+  }
+},
+getAllActiveWithPackages: async (_req: Request, res: Response) => {
+  try {
+    const data = await membersServices.getAllActiveWithPackages();
+    res.status(200).json(data);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message || "Failed to fetch active package details" });
+  }
+},
+
+
 };

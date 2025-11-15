@@ -18,7 +18,7 @@ export function ActionPage() {
       <h1 className="text-3xl font-bold text-gray-900 mb-16">Quick Actions</h1>
 
       <div className="grid grid-cols-2 gap-6">
-        {/* <Button
+        <Button
           className={`${buttonBase} bg-black ${gradientHover}`}
           onClick={() =>
             handleRedirect(
@@ -27,12 +27,8 @@ export function ActionPage() {
           }
         >
           NEW JOINED MEMBER
-        </Button> */}
-        <Button
-          className={`${buttonBase} bg-black ${gradientHover}`}
-          onClick={() => handleRedirect("/membership-form")}>
-          NEW JOINED MEMBER
         </Button>
+
         <Button className={`${buttonBase} bg-black ${gradientHover}`}>
           NEW PERSONAL TRAINING SALES
         </Button>

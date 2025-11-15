@@ -7,7 +7,8 @@ import { memberDeckingSessions, NewMemberDeckingSession } from "../db/schema/mem
 import { memberSessionPackages, NewMemberSessionPackage } from "../db/schema/member_session_packages";
 import { memberPaidSessions, NewMemberPaidSession } from "../db/schema/member_paid_sessions";
 
-import { eq, and, sql } from "drizzle-orm";
+import { eq, and, inArray } from "drizzle-orm";
+import { sql } from "drizzle-orm"; // keep for other uses, not needed for arrays
 
 export const membersServices = {
 
@@ -96,6 +97,7 @@ assignCoach: async (memberId: string, coachId: string) => {
     coachId
   };
 },
+
 
 
 
@@ -203,4 +205,212 @@ assignCoach: async (memberId: string, coachId: string) => {
 
   getActiveMembers: async () =>
     db.select().from(members).where(eq(members.status, "active")),
+
+
+  
+  // ---------------------------------------------------
+  // GET MEMBERS WITH DECKING DETAILS
+  // ---------------------------------------------------
+
+getDeckingDetails: async (memberId: string) => {
+  const member = await db
+    .select()
+    .from(members)
+    .where(eq(members.id, memberId));
+
+  if (!member.length) throw new Error("Member not found");
+
+  const deckingSessions = await db
+    .select()
+    .from(memberDeckingSessions)
+    .where(eq(memberDeckingSessions.memberId, memberId));
+
+  const assignedCoaches = await db
+    .select()
+    .from(memberCoaches)
+    .where(eq(memberCoaches.memberId, memberId));
+
+  return {
+    ...member[0],
+    deckingSessions,
+    assignedCoaches,
+  };
+},
+
+  // ---------------------------------------------------
+  // GET MEMBERS WITH PACKAGE DETAILS
+  // ---------------------------------------------------
+
+getPackageDetails: async (memberId: string) => {
+  const member = await db
+    .select()
+    .from(members)
+    .where(eq(members.id, memberId));
+
+  if (!member.length) throw new Error("Member not found");
+
+  const packages = await db
+    .select()
+    .from(memberSessionPackages)
+    .where(eq(memberSessionPackages.memberId, memberId));
+
+  const allSessions = await db
+    .select()
+    .from(memberPaidSessions)
+    .where(eq(memberPaidSessions.memberId, memberId));
+
+  // Group paid sessions under their package
+  const packagesWithSessions = packages.map((pkg) => ({
+    ...pkg,
+    sessions: allSessions.filter((s) => s.packageId === pkg.id),
+  }));
+
+  const assignedCoaches = await db
+    .select()
+    .from(memberCoaches)
+    .where(eq(memberCoaches.memberId, memberId));
+
+  return {
+    ...member[0],
+    packages: packagesWithSessions,
+    assignedCoaches,
+  };
+},
+
+getAllDeckingWithDetails: async () => {
+  const allMembers = await db
+    .select()
+    .from(members)
+    .where(eq(members.status, "decking"));
+
+  if (!allMembers.length) return [];
+
+  const memberIds = allMembers.map((m) => m.id);
+
+  // ✅ FIX: use inArray()
+  const sessions = await db
+    .select()
+    .from(memberDeckingSessions)
+    .where(inArray(memberDeckingSessions.memberId, memberIds));
+
+  const coachesList = await db.select().from(coaches);
+
+  const memberCoachRelations = await db
+    .select()
+    .from(memberCoaches)
+    .where(inArray(memberCoaches.memberId, memberIds));
+
+  const result = allMembers.map((m) => {
+    const mSessions = sessions.filter((s) => s.memberId === m.id);
+    const mCoachLinks = memberCoachRelations.filter((c) => c.memberId === m.id);
+
+    const assignedCoaches = mCoachLinks.map((link) => {
+      const coach = coachesList.find((c) => c.id === link.coachId);
+      return coach
+        ? { coachId: coach.id, fullName: coach.fullName, email: coach.email }
+        : { coachId: link.coachId };
+    });
+
+    return {
+      ...m,
+      fullName: `${m.firstName} ${m.lastName}`,
+      deckingSessions: mSessions,
+      assignedCoaches,
+    };
+  });
+
+  return result;
+},
+
+  // ---------------------------------------------------
+  // GET ACTIVE MEMBERS WITH PACKAGES & SESSIONS
+  // ---------------------------------------------------
+
+getAllActiveWithPackages: async () => {
+  // 1. Fetch active members
+  const activeMembers = await db
+    .select()
+    .from(members)
+    .where(eq(members.status, "active"));
+
+  if (!activeMembers.length) return [];
+
+  const memberIds = activeMembers.map((m) => m.id);
+
+  // 2. Fetch all packages for these members
+  const packages = await db
+    .select()
+    .from(memberSessionPackages)
+    .where(sql`${memberSessionPackages.memberId} = ANY(${memberIds})`);
+
+  // 3. Fetch all paid sessions
+  const paidSessions = await db
+    .select()
+    .from(memberPaidSessions)
+    .where(sql`${memberPaidSessions.memberId} = ANY(${memberIds})`);
+
+  // 4. Fetch coaches
+  const coachList = await db.select().from(coaches);
+
+  // 5. Fetch coach-member links (assigned coaches)
+  const coachLinks = await db
+    .select()
+    .from(memberCoaches)
+    .where(sql`${memberCoaches.memberId} = ANY(${memberIds})`);
+
+  // 6. Build result shape
+  const result = activeMembers.map((m) => {
+    const memberPackage = packages.find((p) => p.memberId === m.id);
+
+    const sessions = paidSessions
+      .filter((s) => s.memberId === m.id)
+      .map((s) => {
+        const coach = coachList.find((c) => c.id === s.coachId);
+        return {
+          id: s.id,
+          label: s.label,
+          status: s.status,
+          scheduledDate: s.scheduledDate,
+          coach: coach
+            ? { id: coach.id, fullName: coach.fullName }
+            : { id: s.coachId, fullName: "Unassigned" }
+        };
+      });
+
+    const assignedCoaches = coachLinks
+      .filter((cl) => cl.memberId === m.id)
+      .map((cl) => {
+        const coach = coachList.find((c) => c.id === cl.coachId);
+        return coach
+          ? { coachId: coach.id, fullName: coach.fullName, email: coach.email }
+          : { coachId: cl.coachId };
+      });
+
+    return {
+      id: m.id,
+      fullName: `${m.firstName} ${m.lastName}`,
+      email: m.email,
+      phone: m.phone,
+
+      package: memberPackage
+        ? {
+            id: memberPackage.id,
+            name: memberPackage.name,
+            totalSessions: memberPackage.totalSessions,
+            usedSessions: memberPackage.usedSessions,
+            startDate: memberPackage.startDate,
+            expirationDate: memberPackage.expirationDate,
+            price: memberPackage.price
+          }
+        : null,
+
+      sessions,
+      assignedCoaches,
+    };
+  });
+
+  return result;
+}
+
+
 };
