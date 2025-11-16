@@ -16,7 +16,7 @@ export const memberDeckingSessions = pgTable("member_decking_sessions", {
   status: sessionStatusEnum("status").notNull().default("not_scheduled"),
 
   appointmentId: uuid("appointment_id").references(() => appointments.id),
-  scheduledDate: timestamp("scheduled_date"),
+  scheduledDate: text("scheduled_date"), // <-- store as text
 
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });

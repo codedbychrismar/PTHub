@@ -23,6 +23,7 @@ export interface AssignedCoach {
 
 export interface DeckingMember {
   id: string;
+  contactId?: string | null; // <-- ADD THIS
   brandAmbassador: string | null;
   memberType: string;
   firstName: string;

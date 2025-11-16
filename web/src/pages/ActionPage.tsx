@@ -22,7 +22,7 @@ export function ActionPage() {
           className={`${buttonBase} bg-black ${gradientHover}`}
           onClick={() =>
             handleRedirect(
-              "https://afwestavenueph.anytimefitness.app/widget/form/biYV1IXgB3sIIlooezpg?notrack=true"
+              "https://afholyspiritph.anytimefitness.app/widget/form/hVZh8CS6w9O1M5WC8biK?notrack=true"
             )
           }
         >
