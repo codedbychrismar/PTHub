@@ -159,9 +159,20 @@ export function MemberSlideOver({
                           <p className="text-[11px] text-slate-500">
                             Status: {s.status}
                           </p>
-                          <p className="text-[11px] text-slate-500">
-                            Scheduled: {s.scheduledDate || "Not scheduled"}
+                          <p
+                            className={`text-[11px] font-semibold ${
+                              s.status === "signed"
+                                ? "text-green-600"
+                                : s.status === "scheduled"
+                                ? "text-blue-600"
+                                : s.status === "not_scheduled"
+                                ? "text-orange-600"
+                                : "text-gray-600"
+                            }`}
+                          >
+                            {s.status === "scheduled" ? s.scheduledDate : s.status === "signed" ? "Signed" : "Not scheduled"}
                           </p>
+
 
 
                         

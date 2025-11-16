@@ -276,50 +276,63 @@ getPackageDetails: async (memberId: string) => {
   };
 },
 
-getAllDeckingWithDetails: async () => {
-  const allMembers = await db
-    .select()
-    .from(members)
-    .where(eq(members.status, "decking"));
+  getAllDeckingWithDetails: async () => {
+    // 1️⃣ Fetch all members with status 'decking'
+    const allMembers = await db
+      .select()
+      .from(members)
+      .where(eq(members.status, "decking"));
 
-  if (!allMembers.length) return [];
+    if (!allMembers.length) return [];
 
-  const memberIds = allMembers.map((m) => m.id);
+    const memberIds = allMembers.map((m) => m.id);
 
-  // ✅ FIX: use inArray()
-  const sessions = await db
-    .select()
-    .from(memberDeckingSessions)
-    .where(inArray(memberDeckingSessions.memberId, memberIds));
+    // 2️⃣ Fetch all decking sessions for these members
+    const sessions = await db
+      .select()
+      .from(memberDeckingSessions)
+      .where(inArray(memberDeckingSessions.memberId, memberIds));
 
-  const coachesList = await db.select().from(coaches);
+    // Debug: log sessions to verify scheduledDate
+    console.log("Fetched sessions:", sessions);
 
-  const memberCoachRelations = await db
-    .select()
-    .from(memberCoaches)
-    .where(inArray(memberCoaches.memberId, memberIds));
+    // 3️⃣ Fetch all coaches
+    const coachesList = await db.select().from(coaches);
 
-  const result = allMembers.map((m) => {
-    const mSessions = sessions.filter((s) => s.memberId === m.id);
-    const mCoachLinks = memberCoachRelations.filter((c) => c.memberId === m.id);
+    // 4️⃣ Fetch member-coach relations
+    const memberCoachRelations = await db
+      .select()
+      .from(memberCoaches)
+      .where(inArray(memberCoaches.memberId, memberIds));
 
-    const assignedCoaches = mCoachLinks.map((link) => {
-      const coach = coachesList.find((c) => c.id === link.coachId);
-      return coach
-        ? { coachId: coach.id, fullName: coach.fullName, email: coach.email }
-        : { coachId: link.coachId };
+    // 5️⃣ Map sessions and coaches to members
+    const result = allMembers.map((m) => {
+      const mSessions = sessions
+        .filter((s) => s.memberId === m.id)
+        .map((s) => ({
+          ...s,
+          scheduledDate: s.scheduledDate || null, // ensure it's mapped correctly
+        }));
+
+      const mCoachLinks = memberCoachRelations.filter((c) => c.memberId === m.id);
+
+      const assignedCoaches = mCoachLinks.map((link) => {
+        const coach = coachesList.find((c) => c.id === link.coachId);
+        return coach
+          ? { coachId: coach.id, fullName: coach.fullName, email: coach.email }
+          : { coachId: link.coachId };
+      });
+
+      return {
+        ...m,
+        fullName: `${m.firstName} ${m.lastName}`,
+        deckingSessions: mSessions,
+        assignedCoaches,
+      };
     });
 
-    return {
-      ...m,
-      fullName: `${m.firstName} ${m.lastName}`,
-      deckingSessions: mSessions,
-      assignedCoaches,
-    };
-  });
-
-  return result;
-},
+    return result;
+  },
 
   // ---------------------------------------------------
   // GET ACTIVE MEMBERS WITH PACKAGES & SESSIONS

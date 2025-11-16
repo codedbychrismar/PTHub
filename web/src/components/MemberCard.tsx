@@ -1,12 +1,7 @@
 // src/components/MemberCard.tsx
-
 import { Card } from "./ui/card";
 import { UserCircle } from "lucide-react";
-import {
-  assessmentLabels,
-  getSessionStatus,
-  mapSessionLabelToKey,
-} from "../utils";
+import { assessmentLabels, getSessionStatus, mapSessionLabelToKey } from "../utils";
 import type { DeckingMember, Coach, AssessmentKey } from "../types";
 
 interface MemberCardProps {
@@ -21,11 +16,7 @@ export function MemberCard({ member, coachesList, onSelect }: MemberCardProps) {
       ? coachesList.find((c) => c.id === member.assignedCoachId)
       : member.assignedCoaches?.[0];
 
-  const assessmentKeys: AssessmentKey[] = [
-    "assessment1",
-    "assessment2",
-    "assessment3",
-  ];
+  const assessmentKeys: AssessmentKey[] = ["assessment1", "assessment2", "assessment3"];
 
   return (
     <Card
@@ -34,20 +25,14 @@ export function MemberCard({ member, coachesList, onSelect }: MemberCardProps) {
     >
       <div className="flex justify-between items-start gap-3">
         <div>
-          <h3 className="text-sm font-semibold text-slate-900">
-            {member.fullName}
-          </h3>
-          <p className="text-xs text-slate-500 mt-0.5">
-            {member.email} · {member.phone}
-          </p>
+          <h3 className="text-sm font-semibold text-slate-900">{member.fullName}</h3>
+          <p className="text-xs text-slate-500 mt-0.5">{member.email} · {member.phone}</p>
         </div>
 
         {assignedCoach && (
           <div className="flex items-center gap-1 text-purple-700 bg-purple-50 px-2 py-1 rounded-full">
             <UserCircle className="w-4 h-4" />
-            <p className="text-xs font-medium truncate max-w-[140px]">
-              {assignedCoach.fullName}
-            </p>
+            <p className="text-xs font-medium truncate max-w-[140px]">{assignedCoach.fullName}</p>
           </div>
         )}
       </div>
@@ -57,23 +42,44 @@ export function MemberCard({ member, coachesList, onSelect }: MemberCardProps) {
           const session = member.deckingSessions.find(
             (s) => mapSessionLabelToKey(s.label) === key
           );
-          const status = getSessionStatus(session);
+
+          const rawStatus = getSessionStatus(session);
+          // Map raw status to display text
+          let displayStatus: string;
+          switch (rawStatus) {
+            case "scheduled":
+              displayStatus = "Scheduled";
+              break;
+            case "not_scheduled":
+              displayStatus = "Not Yet Scheduled";
+              break;
+            case "not_signed":
+              displayStatus = "Not Signed";
+              break;
+            case "signed":
+              displayStatus = "Signed";
+              break;
+            default:
+              displayStatus = "Unknown";
+          }
 
           return (
             <div key={key} className="flex justify-between items-center">
               <p className="text-slate-600">{assessmentLabels[key]}</p>
               <p
                 className={`font-semibold ${
-                  status === "Signed"
+                  displayStatus === "Signed"
                     ? "text-green-600"
-                    : status === "Scheduled"
+                    : displayStatus === "Scheduled"
                     ? "text-blue-600"
-                    : status === "Not Yet Scheduled"
+                    : displayStatus === "Not Yet Scheduled"
                     ? "text-orange-600"
+                    : displayStatus === "Not Signed"
+                    ? "text-red-600"
                     : "text-gray-600"
                 }`}
               >
-                {status}
+                {displayStatus}
               </p>
             </div>
           );

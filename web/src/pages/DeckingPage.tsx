@@ -18,40 +18,28 @@ export function DeckingPage() {
   const [selectedMember, setSelectedMember] = useState<DeckingMember | null>(null);
   const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
-  // Reusable fetch function (important!)
+  // ------------------------
+  // Fetch members
+  // ------------------------
   const fetchMembers = async () => {
     try {
       const res = await axios.get(`${BACKEND_URL}/api/members/status/decking/details`);
-
       const mapped: DeckingMember[] = (res.data || []).map((m: any) => {
         const assignedCoaches = m.assignedCoaches ?? [];
-
         return {
-          id: m.id,
-          contactId: m.contactId ?? null,
-          brandAmbassador: m.brandAmbassador ?? null,
-          memberType: m.memberType ?? "",
-          firstName: m.firstName ?? "",
-          lastName: m.lastName ?? "",
+          ...m,
           fullName: m.fullName ?? `${m.firstName ?? ""} ${m.lastName ?? ""}`.trim(),
-          email: m.email ?? "",
-          phone: m.phone ?? "",
-          birthday: m.birthday ?? "",
-          address: m.address ?? "",
-          membershipTerm: m.membershipTerm ?? "",
-          startDate: m.startDate ?? null,
-          endDate: m.endDate ?? null,
-          keyfob: m.keyfob ?? "",
-          status: m.status ?? "",
-          createdAt: m.createdAt ?? "",
-          deckingSessions: m.deckingSessions ?? [],
           assignedCoaches,
           assignedCoachId: assignedCoaches[0]?.coachId ?? null,
-          category: (assignedCoaches.length > 0 ? "coaches" : "queue"),
+          category: assignedCoaches.length > 0 ? "coaches" : "queue",
         };
       });
-
       setMembersState(mapped);
+
+      if (selectedMember) {
+        const updatedSelected = mapped.find((x) => x.id === selectedMember.id) || null;
+        setSelectedMember(updatedSelected);
+      }
     } catch (err) {
       console.error("Error fetching decking members:", err);
     } finally {
@@ -63,14 +51,18 @@ export function DeckingPage() {
     fetchMembers();
   }, [BACKEND_URL]);
 
+  // ------------------------
   // Fetch coaches
+  // ------------------------
   useEffect(() => {
     axios.get(`${BACKEND_URL}/api/coaches`)
       .then((res) => setCoachesList(res.data))
       .catch((err) => console.error("Failed to fetch coaches", err));
   }, [BACKEND_URL]);
 
+  // ------------------------
   // Search filter
+  // ------------------------
   const filteredMembers = membersState.filter((m) => {
     const q = searchQuery.toLowerCase().trim();
     if (!q) return true;
@@ -81,13 +73,46 @@ export function DeckingPage() {
     );
   });
 
+  // ------------------------
+  // Update member session (optimistic)
+  // ------------------------
+  const updateMemberSession = (
+    memberId: string,
+    sessionLabel: string,
+    status: string,
+    scheduledDate: string | null
+  ) => {
+    setMembersState((prev) =>
+      prev.map((m) => {
+        if (m.id === memberId) {
+          const updatedMember = {
+            ...m,
+            deckingSessions: m.deckingSessions.map((s) =>
+              s.label === sessionLabel
+                ? { ...s, status, scheduledDate }
+                : { ...s }
+            ),
+          };
+
+          // Sync selectedMember if modal is open
+          if (selectedMember?.id === memberId) {
+            setSelectedMember(updatedMember);
+          }
+
+          return updatedMember;
+        }
+        return m;
+      })
+    );
+  };
+
+  // ------------------------
   // Assign / Unassign coach
+  // ------------------------
   const handleUpdateMemberCoach = async (memberId: string, coachId: string | null) => {
     try {
       await axios.post(`${BACKEND_URL}/api/members/${memberId}/assign-coach`, { coachId });
-
-      // Refresh from backend instead of faking state
-      fetchMembers();
+      fetchMembers(); // refresh state after update
     } catch (err: any) {
       console.error("Failed to assign coach:", err);
       alert(err.response?.data?.error || "Failed to assign coach");

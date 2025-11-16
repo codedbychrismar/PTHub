@@ -77,18 +77,3 @@ export async function addTagToCoach(email: string, tag: string) {
   return true;
 }
 
-/**
- * Optional helper: create a contact if it doesn't exist
- */
-export async function createContact(fullName: string, email: string) {
-  const existingContactId = await getContactIdByEmail(email);
-  if (existingContactId) return existingContactId;
-
-  const contact = await lcApi("/contacts", "POST", {
-    locationId: LC_LOCATION_ID,
-    name: fullName,
-    email,
-  });
-
-  return contact.id || contact.contact?.id;
-}

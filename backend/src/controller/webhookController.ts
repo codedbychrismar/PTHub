@@ -2,10 +2,9 @@ import { Request, Response } from "express";
 import { db } from "../db/index";
 import { members } from "../db/schema/members";
 import { memberDeckingSessions } from "../db/schema/member_decking_sessions";
-import { eq, and } from "drizzle-orm";
+import { eq, and, ilike } from "drizzle-orm";
 
 export const webhookController = {
-
   // ---------------------------------------------------
   // 1. Webhook: mark scheduled
   // ---------------------------------------------------
@@ -27,6 +26,7 @@ export const webhookController = {
         return res.status(400).json({ error: "Invalid sessionLabel" });
       }
 
+
       const member = await db
         .select()
         .from(members)
@@ -39,20 +39,22 @@ export const webhookController = {
         );
 
       if (!member.length) return res.status(404).json({ error: "Member not found" });
+  console.log("Updating scheduledDate:", assessmentsession);
 
       const updated = await db
         .update(memberDeckingSessions)
         .set({
           status: "scheduled",
-          scheduledDate: assessmentsession || null, // store raw string
+          scheduledDate: assessmentsession || null, // <-- here we store the slot
         })
         .where(
           and(
             eq(memberDeckingSessions.memberId, member[0].id),
-            eq(memberDeckingSessions.label, session)
+            ilike(memberDeckingSessions.label, session) // case-insensitive match
           )
         )
         .returning();
+
 
       if (!updated.length) return res.status(404).json({ error: "Session not found" });
 
@@ -85,6 +87,8 @@ export const webhookController = {
         return res.status(400).json({ error: "Invalid sessionLabel" });
       }
 
+      console.log("Webhook markNotSigned received:", { fName, lName, mail, session, assessmentsession });
+
       const member = await db
         .select()
         .from(members)
@@ -107,7 +111,7 @@ export const webhookController = {
         .where(
           and(
             eq(memberDeckingSessions.memberId, member[0].id),
-            eq(memberDeckingSessions.label, session)
+            ilike(memberDeckingSessions.label, session)
           )
         )
         .returning();
@@ -138,6 +142,8 @@ export const webhookController = {
         return res.status(400).json({ error: "Invalid sessionLabel" });
       }
 
+      console.log("Webhook markSigned received:", { email, sessionLabel, signatureUrl });
+
       const member = await db
         .select()
         .from(members)
@@ -155,7 +161,7 @@ export const webhookController = {
         .where(
           and(
             eq(memberDeckingSessions.memberId, member[0].id),
-            eq(memberDeckingSessions.label, sessionLabel)
+            ilike(memberDeckingSessions.label, sessionLabel)
           )
         )
         .returning();
