@@ -1,7 +1,6 @@
 // src/components/common/TextInput.tsx
 // Reusable text input component with NativeWind
 
-import { useThemeStore } from '@/store/themeStore';
 import { cn } from '@/utils/cn';
 import { Ionicons } from '@expo/vector-icons';
 import React, { useState } from 'react';
@@ -10,6 +9,7 @@ import {
   TextInput as RNTextInput,
   Text,
   View,
+  useColorScheme,
   type TextInputProps as RNTextInputProps,
 } from 'react-native';
 
@@ -40,8 +40,7 @@ const TextInput = React.forwardRef<RNTextInput, TextInputProps>(
     },
     ref
   ) => {
-    const { theme } = useThemeStore();
-    const isDark = theme === 'dark';
+    const colorScheme = useColorScheme();
 
     const [isFocused, setIsFocused] = useState(false);
     const [isPasswordVisible, setIsPasswordVisible] = useState(false);
@@ -66,12 +65,7 @@ const TextInput = React.forwardRef<RNTextInput, TextInputProps>(
         {/* Label */}
         {label && (
           <View className="mb-2">
-            <Text
-              className={cn(
-                'text-sm font-medium',
-                isDark ? 'text-slate-300' : 'text-gray-700'
-              )}
-            >
+            <Text className="text-sm font-medium text-gray-700 dark:text-slate-300">
               {label}
               {required && <Text className="text-red-500"> *</Text>}
             </Text>
@@ -81,15 +75,10 @@ const TextInput = React.forwardRef<RNTextInput, TextInputProps>(
         {/* Input Container */}
         <View
           className={cn(
-            'flex-row items-center rounded-2xl border px-5 py-5',
-            isDark ? 'bg-gray-900' : 'bg-slate-50',
-            isFocused &&
-              !hasError &&
-              (isDark ? 'border-indigo-300' : 'border-slate-600'), // lighter indigo when focused in dark
+            'flex-row items-center rounded-2xl border px-5 py-5 bg-slate-50 dark:bg-gray-900',
+            isFocused && !hasError && 'border-slate-600 dark:border-indigo-300',
             hasError && 'border-red-500',
-            !isFocused &&
-              !hasError &&
-              (isDark ? 'border-slate-800' : 'border-slate-200')
+            !isFocused && !hasError && 'border-slate-200 dark:border-slate-800'
           )}
         >
           {/* Left Icon */}
@@ -99,12 +88,11 @@ const TextInput = React.forwardRef<RNTextInput, TextInputProps>(
           <RNTextInput
             ref={ref}
             className={cn(
-              'flex-1 text-base leading-5',
-              isDark ? 'text-slate-100' : 'text-gray-900',
+              'flex-1 text-base leading-5 text-gray-900 dark:text-slate-100',
               inputClassName
             )}
             style={{ padding: 0, margin: 0, height: 24 }}
-            placeholderTextColor={isDark ? '#94A3B8' : '#9CA3AF'}
+            placeholderTextColor={colorScheme === 'dark' ? '#94A3B8' : '#9CA3AF'}
             onFocus={() => setIsFocused(true)}
             onBlur={() => setIsFocused(false)}
             secureTextEntry={
@@ -124,7 +112,7 @@ const TextInput = React.forwardRef<RNTextInput, TextInputProps>(
               <Ionicons
                 name={isPasswordVisible ? 'eye-off' : 'eye'}
                 size={20}
-                color={isDark ? '#94A3B8' : '#6B7280'}
+                color={colorScheme === 'dark' ? '#94A3B8' : '#6B7280'}
               />
             </Pressable>
           )}

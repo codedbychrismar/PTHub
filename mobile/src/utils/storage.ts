@@ -9,7 +9,6 @@ const STORAGE_KEYS = {
   TOKEN: 'token',
   IS_LOGGED_IN: 'isLoggedIn',
   IS_ONBOARDED: 'isOnboarded',
-  THEME: 'theme',
 } as const;
 
 // Generic storage functions
@@ -110,26 +109,13 @@ export const getIsOnboarded = async (): Promise<boolean> => {
   return isOnboarded === 'true';
 };
 
-// Theme
-export const setTheme = async (theme: 'light' | 'dark'): Promise<void> => {
-  await setItem(STORAGE_KEYS.THEME, theme);
-};
-
-export const getTheme = async (): Promise<'light' | 'dark' | null> => {
-  const theme = await getItem(STORAGE_KEYS.THEME);
-  if (theme === 'light' || theme === 'dark') {
-    return theme;
-  }
-  return null;
-};
-
 // Logout function - clears all user-related data
 export const logout = async (): Promise<void> => {
   try {
     await removeUser();
     await removeToken();
     await setIsLoggedIn(false);
-    // Keep onboarding state and theme preference
+    // Keep onboarding state
   } catch (error) {
     console.error('Error during logout:', error);
     throw error;

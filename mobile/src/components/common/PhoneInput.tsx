@@ -1,7 +1,6 @@
 // src/components/common/PhoneInput.tsx
 // Phone input component for Philippine mobile numbers (+63 9XX XXX XXXX)
 
-import { useThemeStore } from '@/store/themeStore';
 import React from 'react';
 import { Text } from 'react-native';
 import TextInput from './TextInput';
@@ -28,8 +27,6 @@ const PhoneInput = React.forwardRef<any, PhoneInputProps>(
     },
     ref
   ) => {
-    const { theme } = useThemeStore();
-    const isDark = theme === 'dark';
 
     /**
      * Formats phone number as: XXX XXX XXXX
@@ -83,9 +80,7 @@ const PhoneInput = React.forwardRef<any, PhoneInputProps>(
         keyboardType="phone-pad"
         maxLength={12} // "XXX XXX XXXX" = 12 characters with spaces
         leftIcon={
-          <Text
-            className={isDark ? 'text-slate-400 text-base' : 'text-gray-600 text-base'}
-          >
+          <Text className="text-gray-600 dark:text-slate-400 text-base">
             +63
           </Text>
         }

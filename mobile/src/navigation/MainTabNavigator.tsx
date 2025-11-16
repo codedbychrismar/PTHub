@@ -1,34 +1,19 @@
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
-import { useColorScheme } from 'nativewind';
 import type { MainTabParamList } from './navigationTypes';
 import HomeScreen from '@/screens/home/HomeScreen';
 import PTHubScreen from '@/screens/pt-hub/PTHubScreen';
 import FuelScreen from '@/screens/fuel/FuelScreen';
+import CustomTabBar from '@/components/navigation/CustomTabBar';
 
 const Tab = createBottomTabNavigator<MainTabParamList>();
 
 export default function MainTabNavigator() {
-  const { colorScheme } = useColorScheme();
-  const isDark = colorScheme === 'dark';
-
   return (
     <Tab.Navigator
+      tabBar={(props) => <CustomTabBar {...props} />}
       screenOptions={{
         headerShown: false,
-        tabBarStyle: {
-          backgroundColor: isDark ? '#1e293b' : '#ffffff',
-          borderTopColor: isDark ? '#334155' : '#e2e8f0',
-          height: 60,
-          paddingBottom: 8,
-          paddingTop: 8,
-        },
-        tabBarActiveTintColor: '#1bc4bc',
-        tabBarInactiveTintColor: isDark ? '#94A3B8' : '#64748b',
-        tabBarLabelStyle: {
-          fontSize: 12,
-          fontWeight: '600',
-        },
       }}
     >
       <Tab.Screen
